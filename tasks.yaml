@@ -1,0 +1,57 @@
+
+
+
+variables:
+  - name: MODULES
+    default: $(find . -mindepth 2 -maxdepth 4 -type f -name 'go.mod' | cut -c 3- | sed 's|/[^/]*$$||' | sort -u | tr / :)
+
+
+tasks:
+
+  - name: set-modules-variable
+    actions:
+      - cmd: echo $(find . -type f -name 'go.mod' -exec dirname {} \; | cut -c 3-)
+        setVariables:
+          - name: MODULES
+
+  - name: build-pkg
+    description: Run unit tests for one package
+    actions:
+      - cmd: cd "${PKG}" && ls &&  go build -o ../build/${PKG} .
+
+  - name: build-all
+    description: Run unit tests in all packages
+    actions:
+      - task: set-modules-variable
+      - cmd: |
+          for dir in ${MODULES}; do
+            uds run build-pkg --set PKG=$dir
+          done
+
+  - name: test-pkg
+    description: Run unit tests for one package
+    actions:
+      - cmd: cd "${PKG}" && go test ./...
+
+  - name: test-all
+    description: Run unit tests in all packages
+    actions:
+      - task: set-modules-variable
+      - cmd: |
+          for dir in ${MODULES}; do
+            uds run test-pkg --set PKG=$dir
+          done
+
+  - name: lint-pkg
+    description: Run in all packages
+    actions:
+      - cmd: cd "${PKG}" && revive -config ../revive.toml ./...
+
+  - name: lint-all
+    description: fmt all packages
+    actions:
+      - task: set-modules-variable
+      - cmd: |
+          for dir in ${MODULES}; do
+            uds run lint-pkg --set PKG=$dir
+          done
