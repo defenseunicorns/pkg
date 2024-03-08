@@ -60,5 +60,5 @@ runs:
         VERSION: v1.3.7
       run: |
         curl --location --output ~/.local/bin/revive.tar.gz https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
-        tar -xvf ~/.local/bin/uds/revive.tar.gz -C ~/.local/bin/
+        tar -xvf ~/.local/bin/revive.tar.gz -C ~/.local/bin/
         chmod +x ~/.local/bin/revive
