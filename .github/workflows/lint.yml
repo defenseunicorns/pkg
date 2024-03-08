@@ -30,3 +30,9 @@ jobs:
       - name: Run lint
         shell: bash
         run: uds run lint-all
+
+      - name: Run Revive Action by pulling pre-built image
+        uses: docker://morphy/revive-action:v2
+        with:
+          config: revive.toml
+          path: "./..."
