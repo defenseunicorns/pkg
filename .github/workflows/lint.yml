@@ -27,5 +27,6 @@ jobs:
       - name: Install tools
         uses: ./.github/actions/install-tools
 
-      - name: Run unit tests
+      - name: Run lint
+        shell: bash
         run: uds run lint-all
