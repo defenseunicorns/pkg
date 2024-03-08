@@ -1,4 +1,4 @@
-name: Test Unit Tests
+name: Unit Tests
 on:
   pull_request:
     paths-ignore:
@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
+  test-unit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
