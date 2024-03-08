@@ -16,9 +16,9 @@ runs:
           **/go.sum
           **/go.mod
 
-    - name: make local install dir
+    - name: add temp to path
       shell: bash
-      run: mkdir -p ~/.local/bin
+      run: echo "/tmp" >> $GITHUB_PATH
 
       # Once there are releases on https://github.com/defenseunicorns/maru-runner we should switch to that
     - name: Install UDS CLI
@@ -26,12 +26,12 @@ runs:
       env:
         VERSION: v0.9.3
       run: |
-        curl --location --output ~/.local/bin/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
-        echo "/tmp" >> $GITHUB_PATH
+        curl --location --output /tmp/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
+
 
     - name: install revive
       shell: bash
       env:
         VERSION: v1.3.7
       run: |
-        curl --location --output ~/.local/bin/uds https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
+        curl --location --output ~/.local/bin/revive https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
