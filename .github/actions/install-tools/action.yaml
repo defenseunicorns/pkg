@@ -16,6 +16,9 @@ runs:
           **/go.sum
           **/go.mod
 
+    - name: Set up Homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+
     - name: Install UDS CLI
       shell: bash
       run: brew install defenseunicorns/tap/uds@0.9.3
