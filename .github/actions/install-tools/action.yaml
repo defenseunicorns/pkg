@@ -10,3 +10,12 @@ runs:
 
     - run: "curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin --tag v0.64.2"
       shell: bash
+
+    - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version: 1.21.x
+        cache: true
+
+    - name: Install UDS CLI
+      shell: bash
+      run: brew install defenseunicorns/tap/uds@0.9.3

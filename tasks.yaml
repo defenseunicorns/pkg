@@ -54,3 +54,10 @@ tasks:
           for dir in ${MODULES}; do
             uds run lint-pkg --set PKG=$dir
           done
+
+  - name: scan-cves
+    description: lint all packages
+    actions:
+      - task: set-modules-variable
+      - cmd: |
+          syft scan . -o json | grype --fail-on low
