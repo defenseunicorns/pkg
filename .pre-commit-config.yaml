@@ -21,8 +21,23 @@ repos:
     rev: v0.5.1
     hooks:
       - id: go-imports
-  # - repo: https://github.com/golangci/golangci-lint
-  #   rev: v1.55.2
-  #   hooks:
-  #     - id: golangci-lint
-  #       args: [--timeout=5m]
+
+  - repo: local
+    hooks:
+      - id: build
+        name: build
+        entry: uds run "build-all"
+        language: system
+        pass_filenames: false
+
+      - id: unit-test
+        name: unit test
+        entry: uds run "test-all"
+        language: system
+        pass_filenames: false
+
+      - id: lint
+        name: go lint
+        entry: uds run "lint-all"
+        language: system
+        pass_filenames: false

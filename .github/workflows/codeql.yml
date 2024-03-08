@@ -41,7 +41,8 @@ jobs:
           config-file: ./.github/codeql.yaml
 
       - name: Build
-        # run: what do I do here
+        with:
+
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@e8893c57a1f3a2b659b6b55564fdfdbbd2982911 # v3.24.0

@@ -1,32 +1,31 @@
-
-
-
 variables:
   - name: MODULES
     default: $(find . -mindepth 2 -maxdepth 4 -type f -name 'go.mod' | cut -c 3- | sed 's|/[^/]*$$||' | sort -u | tr / :)
 
 
 tasks:
-
   - name: set-modules-variable
     actions:
       - cmd: echo $(find . -type f -name 'go.mod' -exec dirname {} \; | cut -c 3-)
         setVariables:
           - name: MODULES
 
+  # This could be improved if something like this was introduced https://github.com/defenseunicorns/maru-runner/issues/17
   - name: build-pkg
-    description: Run unit tests for one package
+    description: build specified package
     actions:
-      - cmd: cd "${PKG}" && ls &&  go build -o ../build/${PKG} .
+      - cmd: cd "${PKG}" &&  go build -o ../build/${PKG} .
+        description: "build pkg"
 
   - name: build-all
-    description: Run unit tests in all packages
+    description: build all packages
     actions:
       - task: set-modules-variable
       - cmd: |
           for dir in ${MODULES}; do
             uds run build-pkg --set PKG=$dir
           done
+        description: build all
 
   - name: test-pkg
     description: Run unit tests for one package
@@ -43,12 +42,12 @@ tasks:
           done
 
   - name: lint-pkg
-    description: Run in all packages
+    description: lint package
     actions:
-      - cmd: cd "${PKG}" && revive -config ../revive.toml ./...
+      - cmd: cd "${PKG}" && revive --set_exit_status -config ../revive.toml ./...
 
   - name: lint-all
-    description: fmt all packages
+    description: lint all packages
     actions:
       - task: set-modules-variable
       - cmd: |

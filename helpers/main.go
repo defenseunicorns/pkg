@@ -1,7 +1,8 @@
+// Package helpers is a cool package
 package helpers
 
 import "fmt"
 
-func Func() {
+func func1() {
 	fmt.Println("hello world")
 }
