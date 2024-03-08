@@ -39,10 +39,10 @@ runs:
     #     tar -xvf /tmp/revive.tar.gz -C /tmp/
     #     chmod +x /tmp/revive
 
-    # - name: make local bin
-    #   shell: bash
-    #   run: |
-    #     mkdir -p ~/.local/bin
+    - name: make local bin
+      shell: bash
+      run: |
+        mkdir -p ~/.local/bin
 
       # Once there are releases on https://github.com/defenseunicorns/maru-runner we should switch to that
     - name: Install UDS CLI
@@ -50,7 +50,7 @@ runs:
       env:
         VERSION: v0.9.3
       run: |
-        sudo curl --location --output ~/.local/bin/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
+        curl --location --output ~/.local/bin/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
         chmod +x ~/.local/bin/uds
 
 
