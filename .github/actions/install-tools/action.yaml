@@ -37,5 +37,4 @@ runs:
       run: |
         curl --location --output /tmp/revive.tar.gz https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
         tar -xvf /tmp/revive.tar.gz -C /tmp/
-        tree /tmp
         chmod +x /tmp/revive
