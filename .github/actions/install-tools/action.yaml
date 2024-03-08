@@ -24,3 +24,10 @@ runs:
       run: |
         curl --location --output ~/.local/bin/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
         echo "/tmp" >> $GITHUB_PATH
+
+    - name: install revive
+      shell: bash
+      env:
+        VERSION: v1.3.7
+      run: |
+        curl --location --output ~/.local/bin/uds https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
