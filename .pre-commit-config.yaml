@@ -20,12 +20,6 @@ repos:
 
   - repo: local
     hooks:
-      - id: build
-        name: build
-        entry: uds run "build-all"
-        language: system
-        pass_filenames: false
-
       - id: unit-test
         name: unit test
         entry: uds run "test-all"

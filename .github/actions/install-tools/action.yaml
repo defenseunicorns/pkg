@@ -16,11 +16,11 @@ runs:
           **/go.sum
           **/go.mod
 
+      # Once there are releases on https://github.com/defenseunicorns/maru-runner we should switch to that
     - name: Install UDS CLI
       shell: bash
       env:
         VERSION: v0.9.3
       run: |
-        wget -O /tmp/uds https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64
-        chmod +x /tmp/uds
+        curl --location --output ~/.local/bin/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
         echo "/tmp" >> $GITHUB_PATH
