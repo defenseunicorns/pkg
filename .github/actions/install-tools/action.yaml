@@ -27,6 +27,7 @@ runs:
         VERSION: v0.9.3
       run: |
         curl --location --output /tmp/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
+        chmod +x /tmp/uds
 
 
     - name: install revive
@@ -35,3 +36,4 @@ runs:
         VERSION: v1.3.7
       run: |
         curl --location --output /tmp/revive https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
+        chmod +x /tmp/revive
