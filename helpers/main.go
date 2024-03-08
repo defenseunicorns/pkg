@@ -3,6 +3,6 @@ package helpers
 
 import "fmt"
 
-func Func1() {
+func func1() {
 	fmt.Println("hello world")
 }
