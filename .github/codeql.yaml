@@ -6,4 +6,3 @@ paths-ignore:
   - "/**/*.svg"
   - CODEOWNERS
   - .github/**
-  - build/**
