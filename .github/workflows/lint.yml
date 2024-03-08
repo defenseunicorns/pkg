@@ -27,10 +27,6 @@ jobs:
       - name: Install tools
         uses: ./.github/actions/install-tools
 
-      # - name: Run lint
-      #   shell: bash
-      #   run: uds run lint-all
-
       - name: Run Revive Action by pulling pre-built image
         uses: docker://morphy/revive-action:v2
         with:

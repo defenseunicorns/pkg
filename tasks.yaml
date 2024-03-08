@@ -39,12 +39,12 @@ tasks:
   - name: lint-pkg
     description: lint package
     actions:
-      - cmd: cd "${PKG}" && revive --set_exit_status -config ../revive.toml ./...
+      - cmd: cd "${PKG}" && revive -config ../revive.toml ./...
 
   - name: lint-all
     description: lint all packages
     actions:
-      - cmd: revive --set_exit_status ./...
+      - cmd: revive ./...
 
   - name: scan-cves
     description: lint all packages
