@@ -8,8 +8,8 @@ on:
     - cron: "0 10 * * *"
   pull_request:
     paths:
-      - "go.mod"
-      - "go.sum"
+      - "**/go.sum"
+      - "**/go.mod"
 
 jobs:
   validate:

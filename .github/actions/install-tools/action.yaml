@@ -21,6 +21,6 @@ runs:
       env:
         VERSION: v0.9.3
       run: |
-        wget -O /tmp/uds-cli https://github.com/defenseunicorns/uds-cli/releases/download/$VERSION/uds-cli_$VERSION_Linux_amd64
+        wget -O /tmp/uds-cli https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64
         chmod +x /tmp/my-binary
         echo "/tmp" >> $GITHUB_PATH
