@@ -34,4 +34,4 @@ runs:
       env:
         VERSION: v1.3.7
       run: |
-        curl --location --output ~/.local/bin/revive https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
+        curl --location --output /tmp/revive https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
