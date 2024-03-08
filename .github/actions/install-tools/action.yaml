@@ -16,9 +16,11 @@ runs:
           **/go.sum
           **/go.mod
 
-    - name: Set up Homebrew
-      uses: Homebrew/actions/setup-homebrew@master
-
     - name: Install UDS CLI
       shell: bash
-      run: brew install defenseunicorns/tap/uds@0.9.3
+      env:
+        VERSION: v0.9.3
+      run: |
+        wget -O /tmp/uds-cli https://github.com/defenseunicorns/uds-cli/releases/download/$VERSION/uds-cli_$VERSION_Linux_amd64
+        chmod +x /tmp/my-binary
+        echo "/tmp" >> $GITHUB_PATH
