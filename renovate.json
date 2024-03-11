@@ -1,15 +1,9 @@
 {
   "enabled": true,
   "extends": [
-    ":dependencyDashboard",
-    ":semanticCommits",
-    ":semanticCommitTypeAll(chore)"
+    "config:base"
   ],
-  "forkProcessing": "enabled",
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "branchConcurrentLimit": 0,
-  "prConcurrentLimit": 0,
-  "prHourlyLimit": 0,
   "rebaseStalePrs": true,
   "rebaseWhen": "conflicted",
   "commitBodyTable": true,
