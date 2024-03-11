@@ -1,0 +1,44 @@
+{
+  "enabled": true,
+  "extends": [
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)"
+  ],
+  "forkProcessing": "enabled",
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "branchConcurrentLimit": 0,
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
+  "rebaseStalePrs": true,
+  "rebaseWhen": "conflicted",
+  "commitBodyTable": true,
+  "separateMajorMinor": false,
+  "suppressNotifications": ["prIgnoreNotification"],
+  "regexManagers":[
+    {
+      "fileMatch": ["\\.*\\.ya?ml$"],
+      "matchStrings": [
+        "# renovate: datasource=github-tags depName=(?<depName>[^ ]+) versioning=(?<versioning>.*?)( extractVersion=(?<extractVersion>.*?))?\n.*?(version:|ref:) (?<currentValue>.*)"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
+      "datasourceTemplate": "github-tags"
+    },
+    {
+      "fileMatch": [".github/actions/install-tools/action.yaml"],
+      "matchStrings": [
+        "# renovate: datasource=github-tags depName=anchore/grype versioning=semver\n.*TAG=\\s*v?(?<currentValue>[\\d.]+)"
+      ],
+      "datasourceTemplate": "github-tags"
+    }
+
+  ],
+  "packageRules": [
+    {
+      "matchFileNames": [".github/**"],
+      "groupName": "githubactions",
+      "commitMessageTopic": "githubactions",
+      "pinDigests": true
+    }
+  ]
+}
