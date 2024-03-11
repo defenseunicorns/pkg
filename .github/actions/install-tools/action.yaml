@@ -16,11 +16,6 @@ runs:
           **/go.sum
           **/go.mod
 
-    - name: make local bin
-      shell: bash
-      run: |
-        mkdir -p ~/.local/bin
-
       # Once there are releases on https://github.com/defenseunicorns/maru-runner we should switch to that
     - name: Install UDS CLI
       shell: bash
