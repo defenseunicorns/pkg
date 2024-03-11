@@ -23,6 +23,20 @@ tasks:
           done
         description: build all
 
+  - name: vet-pkg
+    description: build specified package
+    actions:
+      - cmd: cd "${PKG}" &&  go vet .
+
+  - name: vet-all
+    description: build all packages
+    actions:
+      - task: set-modules-variable
+      - cmd: |
+          for dir in ${MODULES}; do
+            uds run vet-pkg --set PKG=$dir
+          done
+
   - name: test-pkg
     description: Run unit tests for one package
     actions:
