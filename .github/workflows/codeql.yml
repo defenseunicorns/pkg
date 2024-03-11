@@ -40,8 +40,8 @@ jobs:
           languages: go
           config-file: ./.github/codeql.yaml
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@cdcdbb579706841c47f7063dda365e292e5cad7a # v2.13.4
+      - name: Run unit tests
+        run: uds run build-all
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@e8893c57a1f3a2b659b6b55564fdfdbbd2982911 # v3.24.0
