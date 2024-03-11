@@ -7,7 +7,7 @@ runs:
     - uses: anchore/sbom-action/download-syft@b6a39da80722a2cb0ef5d197531764a89b5d48c3 # v0.15.8
 
       # renovate: datasource=github-tags depName=anchore/grype versioning=semver
-    - run: "TAG= v0.105.0 curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin --tag $TAG"
+    - run: "TAG=v0.74.7; curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin --tag $TAG"
       shell: bash
 
     - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
