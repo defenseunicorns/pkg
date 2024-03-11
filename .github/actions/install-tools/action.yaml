@@ -29,14 +29,3 @@ runs:
       run: |
         curl --location --output ~/.local/bin/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
         chmod +x ~/.local/bin/uds
-
-
-
-    - name: install revive
-      shell: bash
-      env:
-        VERSION: v1.3.7
-      run: |
-        curl --location --output ~/.local/bin/revive.tar.gz https://github.com/mgechev/revive/releases/download/${VERSION}/revive_linux_amd64.tar.gz
-        tar -xvf ~/.local/bin/revive.tar.gz -C ~/.local/bin/
-        chmod +x ~/.local/bin/revive
