@@ -1,3 +1,5 @@
+// Copyright (c) HashiCorp, Inc.
+
 // Package helpers is a cool package
 package helpers
 
