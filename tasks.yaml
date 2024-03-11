@@ -10,7 +10,6 @@ tasks:
     description: build specified package
     actions:
       - cmd: cd "${PKG}" &&  go build .
-        description: "build pkg"
 
   # Including a build step for codeQL
   - name: build-all
@@ -21,20 +20,33 @@ tasks:
           for dir in ${MODULES}; do
             uds run build-pkg --set PKG=$dir
           done
-        description: build all
 
   - name: vet-pkg
-    description: build specified package
+    description: vet specified package
     actions:
       - cmd: cd "${PKG}" &&  go vet .
 
   - name: vet-all
-    description: build all packages
+    description: vet all packages
     actions:
       - task: set-modules-variable
       - cmd: |
           for dir in ${MODULES}; do
             uds run vet-pkg --set PKG=$dir
+          done
+
+  - name: gosec-pkg
+    description: run go sec on specified package
+    actions:
+      - cmd: cd "${PKG}" &&  gosec . -no-fail
+
+  - name: gosec-all
+    description: gosec all packages
+    actions:
+      - task: set-modules-variable
+      - cmd: |
+          for dir in ${MODULES}; do
+            uds run gosec-pkg --set PKG=$dir
           done
 
   - name: test-pkg
