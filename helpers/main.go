@@ -2,13 +2,9 @@
 package helpers
 
 import (
-	"sync"
+	"fmt"
 )
 
 func func1() {
-	var lock sync.Mutex
-
-	l := lock
-	l.Lock()
-	l.Unlock()
+	fmt.Println("hello world")
 }
