@@ -9,7 +9,7 @@ tasks:
   - name: build-pkg
     description: build specified package
     actions:
-      - cmd: cd "${PKG}" &&  go build .
+      - cmd: cd "${PKG}" && go build .
 
   # Including a build step for codeQL
   - name: build-all
@@ -24,7 +24,7 @@ tasks:
   - name: vet-pkg
     description: vet specified package
     actions:
-      - cmd: cd "${PKG}" &&  go vet .
+      - cmd: cd "${PKG}" && go vet .
 
   - name: vet-all
     description: vet all packages
