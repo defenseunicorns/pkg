@@ -6,19 +6,20 @@ tasks:
           - name: MODULES
 
   # This could be improved if something like this was introduced https://github.com/defenseunicorns/maru-runner/issues/17
-  - name: vet-pkg
+  - name: build-pkg
     description: build specified package
     actions:
-      - cmd: cd "${PKG}" &&  go vet .
+      - cmd: cd "${PKG}" &&  go build .
         description: "build pkg"
 
-  - name: vet-all
+  # Including a build step for codeQL
+  - name: build-all
     description: build all packages
     actions:
       - task: set-modules-variable
       - cmd: |
           for dir in ${MODULES}; do
-            uds run vet-pkg --set PKG=$dir
+            uds run build-pkg --set PKG=$dir
           done
         description: build all
 
