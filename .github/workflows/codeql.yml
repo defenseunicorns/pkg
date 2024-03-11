@@ -40,8 +40,8 @@ jobs:
           languages: go
           config-file: ./.github/codeql.yaml
 
-      - name: Run unit tests
-        run: uds run build-all
+      - name: Run build through go vet
+        run: uds run vet-all
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@e8893c57a1f3a2b659b6b55564fdfdbbd2982911 # v3.24.0

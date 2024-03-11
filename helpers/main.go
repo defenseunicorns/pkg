@@ -1,8 +1,14 @@
 // Package helpers is a cool package
 package helpers
 
-import "fmt"
+import (
+	"sync"
+)
 
 func func1() {
-	fmt.Println("hello world")
+	var lock sync.Mutex
+
+	l := lock
+	l.Lock()
+	l.Unlock()
 }
