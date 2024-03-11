@@ -4,5 +4,5 @@ package other
 import "fmt"
 
 func func1() {
-	fmt.Println("hello world12")
+	fmt.Println("hello world")
 }
