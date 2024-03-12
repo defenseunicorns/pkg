@@ -1,0 +1,27 @@
+name: Analyze CVEs
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    # https://crontab.guru/#0_10_*_*_* - at 10:00 A.M. UTC every day
+    - cron: "0 10 * * *"
+  pull_request:
+    paths:
+      - "**/go.sum"
+      - "**/go.mod"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install tools
+        uses: ./.github/actions/install-tools
+
+      - name: Check for CVEs in Dependencies
+        # TODO: if this fails we should look at Zarf's .grype.yaml as there may be the same false positive
+        run: "make scan-cves"

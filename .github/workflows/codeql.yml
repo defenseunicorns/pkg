@@ -1,0 +1,49 @@
+name: Analyze CodeQL
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - "**.jpg"
+      - "**.png"
+      - "**.gif"
+      - "**.svg"
+      - "CODEOWNERS"
+  schedule:
+    # https://crontab.guru/#0_2_*_*_5 - at 10:00 A.M. UTC on Friday
+    - cron: "0 10 * * 5"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install tools
+        uses: ./.github/actions/install-tools
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@e8893c57a1f3a2b659b6b55564fdfdbbd2982911 # v3.24.0
+        env:
+          CODEQL_EXTRACTOR_GO_BUILD_TRACING: on
+        with:
+          languages: go
+          config-file: ./.github/codeql.yaml
+
+      - run: make build
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@e8893c57a1f3a2b659b6b55564fdfdbbd2982911 # v3.24.0
+        with:
+          category: "/language:go"
