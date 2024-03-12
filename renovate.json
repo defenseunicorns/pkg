@@ -22,16 +22,6 @@
       ],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "anchore/grype"
-    },
-    {
-      "fileMatch": [
-        ".github/actions/install-tools/action.yaml"
-      ],
-      "matchStrings": [
-        "# renovate: datasource=github-tags depName=defenseunicorns/uds-cli versioning=semver\n\\s*VERSION: (?<currentValue>v[\\d.]+)"
-      ],
-      "datasourceTemplate": "github-tags",
-      "depNameTemplate": "defenseunicorns/uds-cli"
     }
   ]
 }

@@ -28,4 +28,4 @@ jobs:
         uses: ./.github/actions/install-tools
 
       - name: Run unit tests
-        run: uds run test-all
+        run: make test

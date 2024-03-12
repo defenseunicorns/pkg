@@ -19,13 +19,3 @@ runs:
         cache-dependency-path: |
           **/go.sum
           **/go.mod
-
-      # Once there are releases on https://github.com/defenseunicorns/maru-runner we should switch to that
-    - name: Install UDS CLI
-      shell: bash
-      env:
-        # renovate: datasource=github-tags depName=defenseunicorns/uds-cli versioning=semver
-        VERSION: v0.9.3
-      run: |
-        curl --location --output /usr/local/bin/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
-        chmod +x /usr/local/bin/uds

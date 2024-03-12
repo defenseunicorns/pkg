@@ -22,12 +22,12 @@ repos:
     hooks:
       - id: unit-test
         name: unit test
-        entry: uds run "test-all"
+        entry: make test
         language: system
         pass_filenames: false
 
       - id: lint
         name: go lint
-        entry: uds run "lint-all"
+        entry: make lint
         language: system
         pass_filenames: false
