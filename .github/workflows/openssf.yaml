@@ -1,7 +1,8 @@
 name: Scorecard Supply-chain Security
 on:
   schedule:
-    - cron: '32 21 * * 2'
+    # https://crontab.guru/#0_10_*_*_5 - at 10:00 A.M. UTC on Friday
+    - cron: "0 10 * * 5"
   push:
     branches: [main]
 

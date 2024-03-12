@@ -5,6 +5,7 @@ permissions:
 
 on:
   schedule:
+    # https://crontab.guru/#0_10_*_*_* - at 10:00 A.M. UTC every day
     - cron: "0 10 * * *"
   pull_request:
     paths:
