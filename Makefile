@@ -1,41 +1,43 @@
 MODULES=$(shell find . -type f -name 'go.mod' -exec dirname {} \; | cut -c 3-)
 
-PKG?=$*
-
-all: tidy fmt vet test lint
-
 build:
-	$(MAKE) $(addprefix tidy-, $(MODULES))
+	$(MAKE) $(addprefix build-, $(MODULES))
 
 build-%:
-	cd $(subst :,/,$*); go build .
+	cd $*; go build .
 
 tidy:
 	$(MAKE) $(addprefix tidy-, $(MODULES))
 
 tidy-%:
-	cd $(subst :,/,$*); go mod tidy
+	cd $*; go mod tidy
 
 fmt:
 	$(MAKE) $(addprefix fmt-, $(MODULES))
 
 fmt-%:
-	cd $(subst :,/,$*); go fmt ./...
+	cd $*; go fmt ./...
 
 vet:
 	$(MAKE) $(addprefix vet-, $(MODULES))
 
 vet-%:
-	cd $(subst :,/,$*); go vet ./... ;\
+	cd $*; go vet ./... ;\
 
 test:
 	$(MAKE) $(addprefix test-, $(MODULES))
 
 test-%:
-	cd $(subst :,/,$*); go test ./... -coverprofile cover.out ;
+	cd $*; go test ./... -coverprofile cover.out ;
 
 lint:
 	$(MAKE) $(addprefix lint-, $(MODULES))
 
 lint-%:
-	cd $(subst :,/,$*); revive -config ../revive.toml ./...
+	cd $*; revive -config ../revive.toml ./...
+
+scan:
+	$(MAKE) $(addprefix scan-, $(MODULES))
+
+scan-%:
+	cd $*; syft scan . -o json | grype --fail-on low

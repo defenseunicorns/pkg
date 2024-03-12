@@ -41,8 +41,7 @@ jobs:
           languages: go
           config-file: ./.github/codeql.yaml
 
-      - name: Run build
-        run: uds run build-all
+      - run: make build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@e8893c57a1f3a2b659b6b55564fdfdbbd2982911 # v3.24.0
