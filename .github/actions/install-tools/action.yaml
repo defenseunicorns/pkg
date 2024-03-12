@@ -6,8 +6,11 @@ runs:
   steps:
     - uses: anchore/sbom-action/download-syft@b6a39da80722a2cb0ef5d197531764a89b5d48c3 # v0.15.8
 
-      # renovate: datasource=github-tags depName=anchore/grype versioning=semver
-    - run: "TAG=v0.74.6; curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin $TAG"
+    - name: install grype
+      env:
+        # renovate: datasource=github-tags depName=anchore/grype versioning=semver
+        VERSION: v0.74.6
+      run: "curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin $VERSION"
       shell: bash
 
     - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
@@ -21,6 +24,7 @@ runs:
     - name: Install UDS CLI
       shell: bash
       env:
+        # renovate: datasource=github-tags depName=defenseunicorns/uds-cli versioning=semver
         VERSION: v0.9.3
       run: |
         curl --location --output /usr/local/bin/uds "https://github.com/defenseunicorns/uds-cli/releases/download/${VERSION}/uds-cli_${VERSION}_Linux_amd64"
