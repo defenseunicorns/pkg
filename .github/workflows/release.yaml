@@ -35,9 +35,16 @@ jobs:
             exit 1
           fi
 
+      - name: install git cliffs
+        env:
+          VERSION: 2.1.2
+        run: |
+          curl --location --output /tmp/git-cliffs.tar.gz https://github.com/orhun/git-cliff/releases/download/v${VERSION}/git-cliff-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
+          tar -xvzf /tmp/git-cliffs.tar.gz -C /tmp
+          mv /tmp/git-cliff-${VERSION}/git-cliff /usr/local/bin/
+
       - name: generate release notes
-        # run: git cliff --unreleased --include-path "${{ github.event.inputs.packageName }}/*" > notes.txt
-        run: echo "release notes" > notes.txt
+        run: git cliff --unreleased --include-path "${{ github.event.inputs.packageName }}/*" > notes.txt
 
       - name: Release
         env:
