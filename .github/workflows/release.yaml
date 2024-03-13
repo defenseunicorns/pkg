@@ -40,6 +40,8 @@ jobs:
         run: echo "release notes" > notes.txt
 
       - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release create ${{ github.event.inputs.packageName }}/${{ github.event.inputs.version }} --notes-file notes.txt
 
