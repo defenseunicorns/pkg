@@ -7,7 +7,7 @@ on:
         description: "Go Sub-Package Name"
         required: true
       version:
-        description: "Version (Include v)"
+        description: "Version"
         required: true
 
 jobs:
@@ -16,11 +16,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-
-      - name: Configure Git
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
 
       - name: Validate Package Name
         run: |
@@ -32,13 +27,22 @@ jobs:
             exit 1
           fi
 
+      - name: Validate tag
+        run: |
+          SEMVER_REGEX="^v[0-9]+\.[0-9]+\.[0-9]+$"
+          if ! [[ $VERSION =~ $SEMVER_REGEX ]]; then
+            echo "Error: Version $VERSION does not match the semver pattern (vMAJOR.MINOR.PATCH)."
+            exit 1
+          fi
+
+      - name: generate release notes
+        run: git cliff --unreleased --include-path "${{ github.event.inputs.packageName }}/*" > notes.txt
+
       - name: Tag
         run: |
           PACKAGE_NAME=${{ github.event.inputs.packageName }}
           VERSION=${{ github.event.inputs.version }}
-          TAG="${PACKAGE_NAME}/${VERSION}"
-          git tag $TAG
-          git push origin $TAG
+          gh release create $PACKAGE_NAME/$VERSION --notes-file notes.txt
 
       # Could add a release step with git cliff
       # https://git-cliff.org/docs/integration/github
