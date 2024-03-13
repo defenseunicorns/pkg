@@ -37,7 +37,8 @@ jobs:
 
       - name: install git cliffs
         env:
-          VERSION: 2.1.2
+          # renovate: datasource=github-tags depName=orhun/git-cliff versioning=semver
+          VERSION: 2.1.1
         run: |
           curl --location --output /tmp/git-cliffs.tar.gz https://github.com/orhun/git-cliff/releases/download/v${VERSION}/git-cliff-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
           tar -xvzf /tmp/git-cliffs.tar.gz -C /tmp
@@ -51,7 +52,3 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create ${{ github.event.inputs.packageName }}/${{ github.event.inputs.version }} --notes-file notes.txt
-
-      # Could add a release step with git cliff
-      # https://git-cliff.org/docs/integration/github
-      # git cliff -u --include-path "${{ github.event.inputs.packageName }}/*"

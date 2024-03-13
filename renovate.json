@@ -22,6 +22,17 @@
       ],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "anchore/grype"
+    },
+    {
+      "fileMatch": [
+        ".github/workflows/release.yaml"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=github-tags depName=orhun/git-cliff versioning=semver\n\\s*VERSION: (?<currentValue>[\\d.]+)"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "orhun/git-cliff",
+      "extractVersionTemplate": "^v(?<version>.*)$"
     }
   ]
 }
