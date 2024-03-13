@@ -1,4 +1,4 @@
-name: Release Package
+name: Tag Package
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
         required: true
 
 jobs:
-  tag-and-release:
+  tag:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,7 +32,7 @@ jobs:
             exit 1
           fi
 
-      - name: Tag Release
+      - name: Tag
         run: |
           PACKAGE_NAME=${{ github.event.inputs.packageName }}
           VERSION=${{ github.event.inputs.version }}
