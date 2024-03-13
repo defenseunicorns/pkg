@@ -1,43 +1,40 @@
-MODULES=$(shell find . -type f -name 'go.mod' -exec dirname {} \; | cut -c 3-)
+MODULES=$(shell find . -mindepth 2 -maxdepth 4 -type f -name 'go.mod' | cut -c 3- | sed 's|/[^/]*$$||' | sort -u | tr / :)
 
 build:
 	$(MAKE) $(addprefix build-, $(MODULES))
 
 build-%:
-	cd $*; go build .
+	cd $(subst :,/,$*); go build .
 
 tidy:
 	$(MAKE) $(addprefix tidy-, $(MODULES))
 
 tidy-%:
-	cd $*; go mod tidy
+	cd $(subst :,/,$*); go mod tidy
 
 fmt:
 	$(MAKE) $(addprefix fmt-, $(MODULES))
 
 fmt-%:
-	cd $*; go fmt ./...
+	cd $(subst :,/,$*); go fmt ./...
 
 vet:
 	$(MAKE) $(addprefix vet-, $(MODULES))
 
 vet-%:
-	cd $*; go vet ./... ;\
+	cd $(subst :,/,$*); go vet ./... ;\
 
 test:
 	$(MAKE) $(addprefix test-, $(MODULES))
 
 test-%:
-	cd $*; go test ./... -coverprofile cover.out ;
+	cd $(subst :,/,$*); go test ./... -coverprofile cover.out ;
 
 lint:
-	$(MAKE) $(addprefix lint-, $(MODULES))
-
-lint-%:
-	cd $*; revive -config ../revive.toml ./...
+	revive -config revive.toml ./..
 
 scan:
 	$(MAKE) $(addprefix scan-, $(MODULES))
 
 scan-%:
-	cd $*; syft scan . -o json | grype --fail-on low
+	cd $(subst :,/,$*); syft scan . -o json | grype --fail-on low

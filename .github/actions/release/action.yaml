@@ -1,0 +1,57 @@
+name: install-tools
+description: "Install pipeline tools"
+inputs:
+  module-name:
+    description: "The package to be released"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: bump module version
+      id: module-tag
+      run: |
+        echo "new-version=$(go run internal/release/main.go ${{ inputs.module-name }})" >> $GITHUB_OUTPUT
+      shell: bash
+      #${{ steps.module-tag.outputs.new-version }}
+
+    - name: Validate Package Name
+      run: |
+        PACKAGE_NAME=${{ github.event.inputs.packageName }}
+        MODULES=$(find . -type f -name 'go.mod' -exec dirname {} \; | cut -c 3-)
+        if ! echo "$MODULES" | grep "$PACKAGE_NAME"; then
+          echo "Error: Package name '$PACKAGE_NAME' does not match any Go sub-package in the repository."
+          echo "Valid packages: $MODULES"
+          exit 1
+        fi
+
+    - name: Validate version
+      run: |
+        # https://regex101.com/r/Vu7qEb/1
+        SEMVER_REGEX="^v[0-9]+\.[0-9]+\.[0-9]+$"
+        if ! [[ ${{ github.event.inputs.version }} =~ $SEMVER_REGEX ]]; then
+          echo "Error: Version ${{ github.event.inputs.version }} does not match the semver pattern (vMAJOR.MINOR.PATCH)."
+          exit 1
+        fi
+
+    - name: install git cliffs
+      env:
+        # renovate: datasource=github-tags depName=orhun/git-cliff versioning=semver
+        VERSION: 2.1.1
+      run: |
+        curl --location --output /tmp/git-cliffs.tar.gz https://github.com/orhun/git-cliff/releases/download/v${VERSION}/git-cliff-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
+        tar -xvzf /tmp/git-cliffs.tar.gz -C /tmp
+        mv /tmp/git-cliff-${VERSION}/git-cliff /usr/local/bin/
+      shell: bash
+
+    - name: generate release notes
+      run: |
+        git cliff --tag ${{ steps.module-tag.outputs.new-version }} --include-path "${{ github.event.inputs.packageName }}/*" > notes.txt
+      shell: bash
+
+    - name: Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release create ${{ steps.module-tag.outputs.new-version }} --notes-file notes.txt
+      shell: bash
