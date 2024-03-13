@@ -29,6 +29,7 @@ jobs:
 
       - name: Validate tag
         run: |
+          # https://regex101.com/r/Vu7qEb/1
           SEMVER_REGEX="^v[0-9]+\.[0-9]+\.[0-9]+$"
           if ! [[ ${{ github.event.inputs.version }} =~ $SEMVER_REGEX ]]; then
             echo "Error: Version ${{ github.event.inputs.version }} does not match the semver pattern (vMAJOR.MINOR.PATCH)."
