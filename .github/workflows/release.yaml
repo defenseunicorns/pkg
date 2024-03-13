@@ -36,7 +36,8 @@ jobs:
           fi
 
       - name: generate release notes
-        run: git cliff --unreleased --include-path "${{ github.event.inputs.packageName }}/*" > notes.txt
+        # run: git cliff --unreleased --include-path "${{ github.event.inputs.packageName }}/*" > notes.txt
+        run: echo "release notes" > notes.txt
 
       - name: Release
         run: |
