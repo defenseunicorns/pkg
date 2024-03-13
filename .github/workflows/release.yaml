@@ -40,12 +40,6 @@ jobs:
           git tag $TAG
           git push origin $TAG
 
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.event.inputs.packageName }}/${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.packageName }}/${{ github.event.inputs.version }}
-          draft: false
-          prerelease: false
+      # Could add a release step with git cliff
+      # https://git-cliff.org/docs/integration/github
+      # git cliff -u --include-path "${{ github.event.inputs.packageName }}/*"
