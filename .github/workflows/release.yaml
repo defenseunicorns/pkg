@@ -1,0 +1,51 @@
+name: Release Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      packageName:
+        description: "Go Sub-Package Name"
+        required: true
+      version:
+        description: "Version (Include v)"
+        required: true
+
+jobs:
+  tag-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Validate Package Name
+        run: |
+          PACKAGE_NAME=${{ github.event.inputs.packageName }}
+          MODULES=$(find . -type f -name 'go.mod' -exec dirname {} \; | cut -c 3-)
+          if ! echo "$MODULES" | grep "$PACKAGE_NAME"; then
+            echo "Error: Package name '$PACKAGE_NAME' does not match any Go sub-package in the repository."
+            echo "Valid packages: $MODULES"
+            exit 1
+          fi
+
+      - name: Tag Release
+        run: |
+          PACKAGE_NAME=${{ github.event.inputs.packageName }}
+          VERSION=${{ github.event.inputs.version }}
+          TAG="${PACKAGE_NAME}/${VERSION}"
+          git tag $TAG
+          git push origin $TAG
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.packageName }}/${{ github.event.inputs.version }}
+          release_name: Release ${{ github.event.inputs.packageName }}/${{ github.event.inputs.version }}
+          draft: false
+          prerelease: false
