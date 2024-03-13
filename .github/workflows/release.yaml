@@ -1,4 +1,4 @@
-name: Tag Package
+name: Release Package
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
         required: true
 
 jobs:
-  tag:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,19 +30,17 @@ jobs:
       - name: Validate tag
         run: |
           SEMVER_REGEX="^v[0-9]+\.[0-9]+\.[0-9]+$"
-          if ! [[ $VERSION =~ $SEMVER_REGEX ]]; then
-            echo "Error: Version $VERSION does not match the semver pattern (vMAJOR.MINOR.PATCH)."
+          if ! [[ ${{ github.event.inputs.version }} =~ $SEMVER_REGEX ]]; then
+            echo "Error: Version ${{ github.event.inputs.version }} does not match the semver pattern (vMAJOR.MINOR.PATCH)."
             exit 1
           fi
 
       - name: generate release notes
         run: git cliff --unreleased --include-path "${{ github.event.inputs.packageName }}/*" > notes.txt
 
-      - name: Tag
+      - name: Release
         run: |
-          PACKAGE_NAME=${{ github.event.inputs.packageName }}
-          VERSION=${{ github.event.inputs.version }}
-          gh release create $PACKAGE_NAME/$VERSION --notes-file notes.txt
+          gh release create ${{ github.event.inputs.packageName }}/${{ github.event.inputs.version }} --notes-file notes.txt
 
       # Could add a release step with git cliff
       # https://git-cliff.org/docs/integration/github
