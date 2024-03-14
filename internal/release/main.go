@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -74,13 +75,9 @@ func cli(module string) error {
 	sort.Sort(semver.Collection(vs))
 
 	fmt.Printf("this is the semver collection %v\n", vs)
-	latest := vs[len(vs)-1]
+	latestVersion := vs[len(vs)-1]
 
-	getCommitMessagesFromLastTag(latest, module)
-
-	// Discover if the latest change is a major, minor, or patch
-	// I will want the latest tag that matters, then I will want all the commits
-	// between that tag and the current tag that used the include
+	getCommitMessagesFromLastTag(latestVersion, module)
 
 	return nil
 }
@@ -137,7 +134,7 @@ func getCommitMessagesFromLastTag(version *semver.Version, module string) ([]str
 	})
 
 	for _, v := range commitMessages {
-		fmt.Printf("new message %s\n",v)
+		fmt.Printf("new message %s\n", v)
 	}
 	return commitMessages, nil
 }
@@ -167,6 +164,32 @@ func getTagsGit(module string) ([]string, error) {
 	fmt.Printf("these are the filtered tag %v\n", filteredTags)
 
 	return filteredTags, err
+}
+
+const(
+	major = "major"
+	minor = "minor"
+	patch = "patch"
+)
+
+func getTypeOfChange(commits []string) string {
+	commitRegex := regexp.MustCompile(`^(\w+)(\([\w\-.]+\))?(!)?:(\s+.*)`)
+	category := patch
+	for _, commit := range commits {
+		matches := commitRegex.FindStringSubmatch(commit)
+		if matches != nil {
+			commitType := matches[1]
+			isBreaking := matches[3] == "!"
+
+			if isBreaking {
+				category = major
+			} else if commitType == "feat" {
+				category = minor
+			}
+
+		}
+	}
+	return category
 }
 
 func getTagsGithub(module string) ([]string, error) {
