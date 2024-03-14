@@ -20,20 +20,6 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-var commitTypes = []string{
-	"build",
-	"chore",
-	"ci",
-	"docs",
-	"feat",
-	"fix",
-	"perf",
-	"refactor",
-	"revert",
-	"style",
-	"test",
-}
-
 const repoPath = "/home/austin/code/austin-pkg"
 
 func cli(module string) error {
@@ -77,8 +63,21 @@ func cli(module string) error {
 	fmt.Printf("this is the semver collection %v\n", vs)
 	latestVersion := vs[len(vs)-1]
 
-	getCommitMessagesFromLastTag(latestVersion, module)
-
+	commits, err := getCommitMessagesFromLastTag(latestVersion, module)
+	if err != nil {
+		return err
+	}
+	category := getTypeOfChange(commits)
+	var newVersion semver.Version
+	switch category {
+	case major:
+		newVersion = latestVersion.IncMajor()
+	case minor:
+		newVersion = latestVersion.IncMinor()
+	default:
+		newVersion = latestVersion.IncPatch()
+	}
+	fmt.Println(newVersion.String())
 	return nil
 }
 
