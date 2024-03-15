@@ -8,13 +8,6 @@ on:
     paths:
       - 'helpers/**'
   workflow_dispatch:
-    inputs:
-      packageName:
-        description: "Go Sub-Package Name"
-        required: true
-      version:
-        description: "Version"
-        required: true
 
 jobs:
   release:
