@@ -19,20 +19,26 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-const repoPath = "/home/austin/code/austin-pkg"
+func getProjectPath() (string, error) {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", fmt.Errorf("cannot get current file path")
+	}
+	return filepath.Join(filepath.Dir(filename), "..", ".."), nil
+}
 
 func cli(module string) error {
 	// Ensure the path is consistent with the go mod
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
+	baseProjectPath, err := getProjectPath()
+	if err != nil {
 		return fmt.Errorf("cannot get current file path")
 	}
-	path := filepath.Join(filepath.Dir(filename), "..", "..", module, "go.mod")
-	bytes, err := os.ReadFile(path)
+	modPath := filepath.Join(baseProjectPath, module, "go.mod")
+	bytes, err := os.ReadFile(modPath)
 	if err != nil {
 		return err
 	}
-	modFile, err := modfile.Parse(path, bytes, nil)
+	modFile, err := modfile.Parse(modPath, bytes, nil)
 	if err != nil {
 		return err
 	}
@@ -40,8 +46,7 @@ func cli(module string) error {
 		return fmt.Errorf("module is not named consistently with path %s", module)
 	}
 
-
-	filteredTags, err := getTagsGit(module)
+	filteredTags, err := getModuleTags(module)
 	if err != nil {
 		return err
 	}
@@ -68,9 +73,6 @@ func cli(module string) error {
 	if err != nil {
 		return err
 	}
-	for _, v := range commits {
-		fmt.Printf("new message: %s\n", v)
-	}
 	category := getTypeOfChange(commits)
 	var newVersion semver.Version
 	switch category {
@@ -86,6 +88,10 @@ func cli(module string) error {
 }
 
 func getCommitMessagesFromLastTag(version *semver.Version, module string) ([]string, error) {
+	repoPath, err := getProjectPath()
+	if err != nil {
+		return nil, err
+	}
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get repo: %w", err)
@@ -138,8 +144,11 @@ func getCommitMessagesFromLastTag(version *semver.Version, module string) ([]str
 	return commitMessages, nil
 }
 
-func getTagsGit(module string) ([]string, error) {
-
+func getModuleTags(module string) ([]string, error) {
+	repoPath, err := getProjectPath()
+	if err != nil {
+		return nil, err
+	}
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open repository: %w", err)
