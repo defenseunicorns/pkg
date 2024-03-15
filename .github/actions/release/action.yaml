@@ -11,7 +11,7 @@ runs:
     - name: bump module version
       id: module-tag
       run: |
-        echo "new-version=$(go run internal/release/main.go ${{ inputs.module-name }})" >> $GITHUB_OUTPUT
+        echo "new-version=$(go run internal/release/main.go ${{ inputs.module }})" >> $GITHUB_OUTPUT
       shell: bash
 
 
@@ -27,7 +27,7 @@ runs:
 
     - name: generate release notes
       run: |
-        git cliff --tag ${{ steps.module-tag.outputs.new-version }} --include-path "${{ github.event.inputs.packageName }}/*" > notes.txt
+        git cliff --tag ${{ steps.module-tag.outputs.new-version }} --include-path "${{ inputs.module }}/*" > notes.txt
       shell: bash
 
     - name: Release
