@@ -2,12 +2,12 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -16,7 +16,6 @@ import (
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/google/go-github/v52/github"
 	"golang.org/x/mod/modfile"
 )
 
@@ -24,11 +23,11 @@ const repoPath = "/home/austin/code/austin-pkg"
 
 func cli(module string) error {
 	// Ensure the path is consistent with the go mod
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return fmt.Errorf("cannot get current file path")
 	}
-	path := filepath.Join(cwd, "..", "..", module, "go.mod")
+	path := filepath.Join(filepath.Dir(filename), "..", "..", module, "go.mod")
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -37,18 +36,16 @@ func cli(module string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("modfile is %v \n", modFile.Module.Mod.Path)
+	if !strings.HasSuffix(modFile.Module.Mod.Path, module) {
+		return fmt.Errorf("module is not named consistently with path %s", module)
+	}
 
-	// Get the latest version
-	// Configuration
-	// Fetch tags
-	// Filter tags based on prefix and sort them
+
 	filteredTags, err := getTagsGit(module)
 	if err != nil {
 		return err
 	}
 
-	// Increment the version based on conventional commits
 	vs := make([]*semver.Version, len(filteredTags))
 	for i, r := range filteredTags {
 		v, err := semver.NewVersion(r)
@@ -58,14 +55,21 @@ func cli(module string) error {
 		vs[i] = v
 	}
 
-	sort.Sort(semver.Collection(vs))
+	if len(vs) == 0 {
+		// If there is not already a version, just make the version 0.0.1
+		fmt.Printf("%s/v%s", module, "0.0.1")
+		return nil
+	}
 
-	fmt.Printf("this is the semver collection %v\n", vs)
+	sort.Sort(semver.Collection(vs))
 	latestVersion := vs[len(vs)-1]
 
 	commits, err := getCommitMessagesFromLastTag(latestVersion, module)
 	if err != nil {
 		return err
+	}
+	for _, v := range commits {
+		fmt.Printf("new message: %s\n", v)
 	}
 	category := getTypeOfChange(commits)
 	var newVersion semver.Version
@@ -77,7 +81,7 @@ func cli(module string) error {
 	default:
 		newVersion = latestVersion.IncPatch()
 	}
-	fmt.Println(newVersion.String())
+	fmt.Printf("%s/v%s", module, newVersion.String())
 	return nil
 }
 
@@ -88,7 +92,6 @@ func getCommitMessagesFromLastTag(version *semver.Version, module string) ([]str
 	}
 
 	compareTag := fmt.Sprintf("%s/%s", module, version.Original())
-	fmt.Printf("this is the compare tag %s\n", compareTag)
 	latestTagRef, err := r.Tag(compareTag)
 	if err != nil {
 		log.Fatalf("Failed to get tag: %s", err)
@@ -132,15 +135,11 @@ func getCommitMessagesFromLastTag(version *semver.Version, module string) ([]str
 		return nil
 	})
 
-	for _, v := range commitMessages {
-		fmt.Printf("new message %s\n", v)
-	}
 	return commitMessages, nil
 }
 
 func getTagsGit(module string) ([]string, error) {
 
-	// TODO change this
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open repository: %w", err)
@@ -160,12 +159,11 @@ func getTagsGit(module string) ([]string, error) {
 		}
 		return nil
 	})
-	fmt.Printf("these are the filtered tag %v\n", filteredTags)
 
 	return filteredTags, err
 }
 
-const(
+const (
 	major = "major"
 	minor = "minor"
 	patch = "patch"
@@ -182,6 +180,7 @@ func getTypeOfChange(commits []string) string {
 
 			if isBreaking {
 				category = major
+				break
 			} else if commitType == "feat" {
 				category = minor
 			}
@@ -189,28 +188,6 @@ func getTypeOfChange(commits []string) string {
 		}
 	}
 	return category
-}
-
-func getTagsGithub(module string) ([]string, error) {
-	owner := "austinabro321"
-	repo := "pkg"
-
-	client := github.NewClient(nil)
-
-	tags, _, err := client.Repositories.ListTags(context.TODO(), owner, repo, &github.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	var filteredTags []string
-	tagPrefix := fmt.Sprintf("%s/", module)
-	for _, tag := range tags {
-		if strings.HasPrefix(*tag.Name, tagPrefix) {
-			filteredTags = append(filteredTags, strings.TrimPrefix(*tag.Name, tagPrefix))
-		}
-	}
-	fmt.Printf("these are the tags %v", filteredTags)
-	return filteredTags, nil
 }
 
 func main() {

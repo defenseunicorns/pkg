@@ -15,24 +15,6 @@ runs:
       shell: bash
       #${{ steps.module-tag.outputs.new-version }}
 
-    - name: Validate Package Name
-      run: |
-        PACKAGE_NAME=${{ github.event.inputs.packageName }}
-        MODULES=$(find . -type f -name 'go.mod' -exec dirname {} \; | cut -c 3-)
-        if ! echo "$MODULES" | grep "$PACKAGE_NAME"; then
-          echo "Error: Package name '$PACKAGE_NAME' does not match any Go sub-package in the repository."
-          echo "Valid packages: $MODULES"
-          exit 1
-        fi
-
-    - name: Validate version
-      run: |
-        # https://regex101.com/r/Vu7qEb/1
-        SEMVER_REGEX="^v[0-9]+\.[0-9]+\.[0-9]+$"
-        if ! [[ ${{ github.event.inputs.version }} =~ $SEMVER_REGEX ]]; then
-          echo "Error: Version ${{ github.event.inputs.version }} does not match the semver pattern (vMAJOR.MINOR.PATCH)."
-          exit 1
-        fi
 
     - name: install git cliffs
       env:

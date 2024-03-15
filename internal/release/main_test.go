@@ -21,8 +21,8 @@ func TestGetTypeOfChange(t *testing.T) {
 			expected: minor,
 		},
 		{
-			name:     "Breaking change commit",
-			commits:  []string{"fix!: fix critical bug"},
+			name:     "Breaking change commit, then feature",
+			commits:  []string{"fix!: fix critical bug", "feat: database"},
 			expected: major,
 		},
 		{
