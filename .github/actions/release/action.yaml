@@ -11,10 +11,10 @@ runs:
     - name: bump module version
       id: module-tag
       run: |
+        git fetch --tags origin
         cd internal/release
         echo "new-version=$(go run main.go ${{ inputs.module }})" >> $GITHUB_OUTPUT
       shell: bash
-
 
     - name: install git cliffs
       env:
