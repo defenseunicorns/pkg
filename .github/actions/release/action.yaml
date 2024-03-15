@@ -1,8 +1,8 @@
 name: install-tools
 description: "Install pipeline tools"
 inputs:
-  module-name:
-    description: "The package to be released"
+  module:
+    description: "The module to be released"
     required: true
 
 runs:
@@ -13,7 +13,6 @@ runs:
       run: |
         echo "new-version=$(go run internal/release/main.go ${{ inputs.module-name }})" >> $GITHUB_OUTPUT
       shell: bash
-      #${{ steps.module-tag.outputs.new-version }}
 
 
     - name: install git cliffs
