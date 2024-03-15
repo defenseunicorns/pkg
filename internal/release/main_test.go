@@ -7,41 +7,31 @@ import (
 func TestGetTypeOfChange(t *testing.T) {
 	tests := []struct {
 		name     string
-		commits  []string
+		commit  string
 		expected string
 	}{
 		{
-			name:     "Empty commits",
-			commits:  []string{},
-			expected: patch,
-		},
-		{
 			name:     "Feature commit",
-			commits:  []string{"feat(something): add login feature"},
+			commit:  "feat(something): add login feature",
 			expected: minor,
 		},
 		{
 			name:     "Breaking change commit, then feature",
-			commits:  []string{"fix!: fix critical bug", "feat: database"},
+			commit:  "fix!: fix critical bug",
 			expected: major,
 		},
 		{
 			name:     "Multiple commits, last is feat",
-			commits:  []string{"chore(scope): update dependencies", "feat: add new API endpoint"},
-			expected: minor,
-		},
-		{
-			name:     "Multiple commits, last is breaking",
-			commits:  []string{"feat: add something", "fix!: critical fix"},
-			expected: major,
+			commit:  "chore(scope): update dependencies",
+			expected: patch,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := getTypeOfChange(tt.commits)
+			result := getTypeOfChange(tt.commit)
 			if result != tt.expected {
-				t.Errorf("getTypeOfChange(%v) = %v, want %v", tt.commits, result, tt.expected)
+				t.Errorf("getTypeOfChange(%v) = %v, want %v", tt.commit, result, tt.expected)
 			}
 		})
 	}
