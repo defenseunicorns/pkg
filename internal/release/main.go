@@ -133,15 +133,12 @@ func getCommitMessagesFromLastTag(lastTagVersion *semver.Version, module string)
 	}
 
 	var commitMessages []string
-	pastTagCommit := false
 	err = commits.ForEach(func(c *object.Commit) error {
-		if pastTagCommit {
-			commitMessages = append(commitMessages, c.Message)
+		if c.Hash == tagCommit.Hash {
+			// Once we reach the tag's commit, stop iterating
+			return nil
 		}
-
-		if c.Hash.String() == tagCommit.Hash.String() {
-			pastTagCommit = true
-		}
+		commitMessages = append(commitMessages, c.Message)
 		return nil
 	})
 
