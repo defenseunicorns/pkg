@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,8 +12,10 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
+	"github.com/go-git/go-git/plumbing/storer"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"golang.org/x/mod/modfile"
 )
 
@@ -66,11 +69,15 @@ func cli(module string) error {
 	sort.Sort(semver.Collection(vs))
 	latestVersion := vs[len(vs)-1]
 
-	commit, err := gitLatestCommit()
+	commits, err := getCommitMessagesFromLastTag(latestVersion, module)
 	if err != nil {
 		return err
 	}
-	category := getTypeOfChange(commit)
+	if len(commits) == 0 {
+		return fmt.Errorf("no commits affecting module %s since last tag", module)
+	}
+
+	category := getTypeOfChange(commits)
 	var newVersion semver.Version
 	switch category {
 	case major:
@@ -84,27 +91,66 @@ func cli(module string) error {
 	return nil
 }
 
-func gitLatestCommit() (string, error) {
+func getCommitMessagesFromLastTag(version *semver.Version, module string) ([]string, error) {
 	repoPath, err := getProjectPath()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to get repo: %w", err)
+		return nil, fmt.Errorf("failed to get repo: %w", err)
 	}
 
-	ref, err := r.Head()
+	compareTag := fmt.Sprintf("%s/%s", module, version.Original())
+	latestTagRef, err := r.Tag(compareTag)
 	if err != nil {
-		return "", fmt.Errorf("failed to get HEAD: %w", err)
+		return nil, fmt.Errorf("failed to get tag: %w", err)
 	}
 
-	commit, err := r.CommitObject(ref.Hash())
+	// Get the commit object for this tag
+	tagCommit, err := r.CommitObject(latestTagRef.Hash())
 	if err != nil {
-		return "", fmt.Errorf("failed to get commit object: %w", err)
+		return nil, fmt.Errorf("failed to get commit from tag: %w", err)
 	}
 
-	return commit.Message, nil
+	headRef, err := r.Head()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get reference: %w", err)
+	}
+
+	// Get the commit object for HEAD
+	headCommit, err := r.CommitObject(headRef.Hash())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit: %w", err)
+	}
+
+	pathPrefix := fmt.Sprintf("%s/", module)
+	commits, err := r.Log(&git.LogOptions{
+		From: headCommit.Hash,
+		PathFilter: func(path string) bool {
+			return strings.HasPrefix(path, pathPrefix)
+		},
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commits: %w", err)
+	}
+
+	var commitMessages []string
+	err = commits.ForEach(func(c *object.Commit) error {
+		if c.Hash == tagCommit.Hash {
+			// Once we reach the tag's commit, stop iterating
+			return storer.ErrStop
+		}
+		commitMessages = append(commitMessages, c.Message)
+		return nil
+	})
+
+	if err != nil && !errors.Is(err, storer.ErrStop) {
+		return nil, fmt.Errorf("could not iterate over commits %w", err)
+	}
+
+	return commitMessages, nil
 }
 
 func getModuleTags(module string) ([]string, error) {
@@ -141,20 +187,27 @@ const (
 	patch = "patch"
 )
 
-func getTypeOfChange(commit string) string {
+func getTypeOfChange(commits []string) string {
+	// https://regex101.com/r/obSlh6/1
+	// Regex for conventional commits
 	commitRegex := regexp.MustCompile(`^(\w+)(\([\w\-.]+\))?(!)?:(\s+.*)`)
-	matches := commitRegex.FindStringSubmatch(commit)
-	if matches != nil {
-		commitType := matches[1]
-		isBreaking := matches[3] == "!"
+	category := patch
+	for _, commit := range commits {
+		matches := commitRegex.FindStringSubmatch(commit)
+		if matches != nil {
+			commitType := matches[1]
+			isBreaking := matches[3] == "!"
 
-		if isBreaking {
-			return major
-		} else if commitType == "feat" {
-			return minor
+			if isBreaking {
+				category = major
+				break
+			} else if commitType == "feat" {
+				category = minor
+			}
+
 		}
 	}
-	return patch
+	return category
 }
 
 func main() {
