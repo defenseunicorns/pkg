@@ -25,7 +25,7 @@ func getProjectPath() (string, error) {
 	return filepath.Join(filepath.Dir(filename), "..", ".."), nil
 }
 
-func cli(module string) error {
+func printNewVersion(module string) error {
 	// Ensure the path is consistent with the go mod
 	baseProjectPath, err := getProjectPath()
 	if err != nil {
@@ -159,7 +159,6 @@ func getModuleTags(module string) ([]string, error) {
 		return nil, fmt.Errorf("failed to open repository: %w", err)
 	}
 
-	// List all tag references
 	tagRefs, err := r.Tags()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch tags: %w", err)
@@ -208,7 +207,7 @@ func getTypeOfChange(commits []string) string {
 
 func main() {
 	module := os.Args[1]
-	err := cli(module)
+	err := printNewVersion(module)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
