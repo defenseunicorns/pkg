@@ -7,7 +7,6 @@ on:
       - main
     paths:
       - 'helpers/**'
-  workflow_dispatch:
 
 jobs:
   release:
