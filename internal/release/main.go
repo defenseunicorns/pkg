@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
-	"github.com/go-git/go-git/plumbing/storer"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	"golang.org/x/mod/modfile"
 )
 
