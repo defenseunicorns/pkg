@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	"golang.org/x/mod/modfile"
 )
 
@@ -133,16 +135,17 @@ func getCommitMessagesFromLastTag(lastTagVersion *semver.Version, module string)
 	}
 
 	var commitMessages []string
+	// These commits are in the order of most recent first
 	err = commits.ForEach(func(c *object.Commit) error {
 		if c.Hash == tagCommit.Hash {
 			// Once we reach the tag's commit, stop iterating
-			return nil
+			return storer.ErrStop
 		}
 		commitMessages = append(commitMessages, c.Message)
 		return nil
 	})
 
-	if err != nil {
+	if err != nil && !errors.Is(err, storer.ErrStop) {
 		return nil, fmt.Errorf("could not iterate over commits %w", err)
 	}
 
