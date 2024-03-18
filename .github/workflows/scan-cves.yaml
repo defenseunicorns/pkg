@@ -24,4 +24,4 @@ jobs:
 
       - name: Check for CVEs in Dependencies
         # TODO: if this fails we should look at Zarf's .grype.yaml as there may be the same false positive
-        run: "make scan-cves"
+        run: "make scan"
