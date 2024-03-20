@@ -20,11 +20,11 @@ import (
 )
 
 func getProjectPath() (string, error) {
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		return "", fmt.Errorf("cannot get current file path")
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
 	}
-	return filepath.Join(filepath.Dir(filename), "..", ".."), nil
+	return filepath.Dir(filepath.Dir(wd)), nil
 }
 
 func printNewVersion(module string) error {
