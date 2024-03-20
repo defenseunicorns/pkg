@@ -31,7 +31,7 @@ func printNewVersion(module string) error {
 	// Ensure the path is consistent with the go mod
 	baseProjectPath, err := getProjectPath()
 	if err != nil {
-		return fmt.Errorf("cannot get current file path")
+		return err
 	}
 	modPath := filepath.Join(baseProjectPath, module, "go.mod")
 	bytes, err := os.ReadFile(modPath)
