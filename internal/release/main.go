@@ -27,43 +27,50 @@ func getProjectPath() (string, error) {
 	return filepath.Join(filepath.Dir(filename), "..", ".."), nil
 }
 
-func bumpVersion(module string) (string, error) {
+func validateModFile(path string) error {
 	// Ensure the path is consistent with the go mod
 	baseProjectPath, err := getProjectPath()
 	if err != nil {
-		return "", fmt.Errorf("cannot get current file path")
+		return fmt.Errorf("cannot get current file path")
 	}
-	modPath := filepath.Join(baseProjectPath, module, "go.mod")
+	modPath := filepath.Join(baseProjectPath, path, "go.mod")
 	bytes, err := os.ReadFile(modPath)
 	if err != nil {
-		return "", err
+		return err
 	}
 	modFile, err := modfile.Parse(modPath, bytes, nil)
 	if err != nil {
-		return "", err
+		return err
 	}
-	expectedModPath := fmt.Sprintf("github.com/defenseunicorns/pkg/%s", module)
-	if expectedModPath != modFile.Module.Mod.Path{
-		return "", fmt.Errorf("the module name is incorrect or a %s does not exist as a module", module)
+	expectedModPath := fmt.Sprintf("github.com/defenseunicorns/pkg/%s", path)
+	if expectedModPath != modFile.Module.Mod.Path {
+		return fmt.Errorf("the module name is incorrect or a %s does not exist as a module", path)
 	}
+	return nil
+}
 
+func bumpVersion(module string) (*semver.Version, error) {
 	filteredTags, err := getModuleTags(module)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	versions := make([]*semver.Version, len(filteredTags))
 	for i, r := range filteredTags {
 		v, err := semver.NewVersion(r)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		versions[i] = v
 	}
 
 	if len(versions) == 0 {
 		// If there is not already a version, just make the version 0.0.1
-		return fmt.Sprintf("%s/v%s", module, "0.0.1"), nil
+		version, err := semver.NewVersion("0.0.1")
+		if err != nil {
+			return nil, err
+		}
+		return version, nil
 	}
 
 	sort.Sort(semver.Collection(versions))
@@ -71,10 +78,10 @@ func bumpVersion(module string) (string, error) {
 
 	commits, err := getCommitMessagesFromLastTag(latestVersion, module)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if len(commits) == 0 {
-		return "", fmt.Errorf("no commits affecting module %s since last tag", module)
+		return nil, fmt.Errorf("no commits affecting module %s since last tag", module)
 	}
 
 	category := getTypeOfChange(commits)
@@ -87,7 +94,7 @@ func bumpVersion(module string) (string, error) {
 	default:
 		newVersion = latestVersion.IncPatch()
 	}
-	return fmt.Sprintf("%s/v%s", module, newVersion.String()), nil
+	return &newVersion, nil
 }
 
 func getCommitMessagesFromLastTag(lastTagVersion *semver.Version, module string) ([]string, error) {
@@ -208,11 +215,17 @@ func getTypeOfChange(commits []string) string {
 }
 
 func main() {
+	if len(os.Args) != 2 {
+		panic("this program should be called with the module name. For example, \"go run main.go helpers\"")
+	}
 	module := os.Args[1]
-	newVersion, err := bumpVersion(module)
-	fmt.Print(newVersion)
+	err := validateModFile(module)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
+	}
+	newVersion, err := bumpVersion(module)
+	fmt.Printf("%s/v%s", module, newVersion.String())
+	if err != nil {
+		panic(err)
 	}
 }
