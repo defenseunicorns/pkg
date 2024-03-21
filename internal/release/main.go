@@ -49,7 +49,17 @@ func validateModFile(path string) error {
 }
 
 func bumpVersion(module string) (*semver.Version, error) {
-	filteredTags, err := getModuleTags(module)
+	repoPath, err := getProjectPath()
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	filteredTags, err := getModuleTags(r, module)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +85,7 @@ func bumpVersion(module string) (*semver.Version, error) {
 	sort.Sort(semver.Collection(versions))
 	latestVersion := versions[len(versions)-1]
 
-	commits, err := getCommitMessagesFromLastTag(latestVersion, module)
+	commits, err := getCommitMessagesFromLastTag(r, latestVersion, module)
 	if err != nil {
 		return nil, err
 	}
@@ -96,20 +106,13 @@ func bumpVersion(module string) (*semver.Version, error) {
 	return &newVersion, nil
 }
 
-func getCommitMessagesFromLastTag(lastTagVersion *semver.Version, module string) ([]string, error) {
-	repoPath, err := getProjectPath()
-	if err != nil {
-		return nil, err
-	}
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get repo: %w", err)
-	}
+func getCommitMessagesFromLastTag(r *git.Repository, lastTagVersion *semver.Version, module string) ([]string, error) {
 
-	latestTag := fmt.Sprintf("%s/%s", module, lastTagVersion.Original())
+	latestTag := fmt.Sprintf("%s/v%s", module, lastTagVersion.String())
+
 	latestTagRef, err := r.Tag(latestTag)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tag: %w", err)
+		return nil, fmt.Errorf("failed to get tag %s: %w", latestTag, err)
 	}
 
 	tagCommit, err := r.CommitObject(latestTagRef.Hash())
@@ -128,6 +131,7 @@ func getCommitMessagesFromLastTag(lastTagVersion *semver.Version, module string)
 	}
 
 	pathPrefix := fmt.Sprintf("%s/", module)
+
 	commits, err := r.Log(&git.LogOptions{
 		From: headCommit.Hash,
 		PathFilter: func(path string) bool {
@@ -157,15 +161,7 @@ func getCommitMessagesFromLastTag(lastTagVersion *semver.Version, module string)
 	return commitMessages, nil
 }
 
-func getModuleTags(module string) ([]string, error) {
-	repoPath, err := getProjectPath()
-	if err != nil {
-		return nil, err
-	}
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open repository: %w", err)
-	}
+func getModuleTags(r *git.Repository, module string) ([]string, error) {
 
 	tagRefs, err := r.Tags()
 	if err != nil {
