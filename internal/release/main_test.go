@@ -84,15 +84,8 @@ func createCommit(t *testing.T, r *git.Repository, path string, message string) 
 	return h
 }
 
-	// These are the cases I want to test
-	// 1. Happy path - I have a tag that has the prefix, I get all the commits that touch the prefix after that
-	// 2. I have a tag that does not touch the prefix. I still get all the tags after that tag was committed
-	// 3.
-
-
-func TestGit(t *testing.T) {
-	fs := memfs.New()
-	r, err := git.Init(memory.NewStorage(), fs)
+func TestCommit(t *testing.T) {
+	r, err := git.Init(memory.NewStorage(), memfs.New())
 	require.NoError(t, err)
 	module := "helpers"
 	hash := createCommit(t, r, fmt.Sprintf("%s/foo.go", module), "first commit")
@@ -104,18 +97,39 @@ func TestGit(t *testing.T) {
 	commitAfterTag := "second commit"
 	createCommit(t, r, fmt.Sprintf("%s/foo.go", module), commitAfterTag)
 
+	createCommit(t, r, fmt.Sprintf("%s/foo.go", "notHelpers"), "this commit doesn't touch helpers")
+
 	cm, err := getCommitMessagesFromLastTag(r, version, module)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cm))
 	require.Equal(t, commitAfterTag, cm[0])
 }
 
-func TestTagDoesntExist(t *testing.T) {
-	fs := memfs.New()
-	r, err := git.Init(memory.NewStorage(), fs)
+func TestTagCommitDoesntTouchHelpers(t *testing.T) {
+	r, err := git.Init(memory.NewStorage(), memfs.New())
+	require.NoError(t, err)
+
+	require.NoError(t, err)
+	module := "helpers"
+	createCommit(t, r, fmt.Sprintf("%s/foo.go", module), "first commit touches the module")
+	hash := createCommit(t, r, fmt.Sprintf("%s/foo.go", "notHelpers"), "second commit touches the module")
+	latestTag := fmt.Sprintf("%s/v0.0.1", module)
+	_, err = r.CreateTag(latestTag, hash, nil)
+	require.NoError(t, err)
 
 	version, err := semver.NewVersion("0.0.1")
-	require.NoError(t,err)
+	require.NoError(t, err)
+	cm, err := getCommitMessagesFromLastTag(r, version, module)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(cm))
+}
+
+func TestTagDoesntExist(t *testing.T) {
+	r, err := git.Init(memory.NewStorage(), memfs.New())
+	require.NoError(t, err)
+
+	version, err := semver.NewVersion("0.0.1")
+	require.NoError(t, err)
 	_, err = getCommitMessagesFromLastTag(r, version, "whatever")
 	require.Error(t, err)
 }
