@@ -220,11 +220,14 @@ func main() {
 	module := os.Args[1]
 	err := validateModFile(module)
 	if err != nil {
-		panic(err)
+		fmt.Println("Error: ", err)
+		os.Exit(1)
 	}
 	newVersion, err := bumpVersion(module)
-	fmt.Printf("%s/v%s", module, newVersion.String())
 	if err != nil {
-		panic(err)
+		fmt.Println("Error: ", err)
+		os.Exit(1)
 	}
+	fmt.Printf("%s/v%s", module, newVersion.String())
+	os.Exit(0)
 }
