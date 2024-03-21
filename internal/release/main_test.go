@@ -58,12 +58,12 @@ func createCommit(t *testing.T, r *git.Repository, path string, message string) 
 	wt, err := r.Worktree()
 	require.NoError(t, err)
 
-	rm, err := wt.Filesystem.Create(path)
+	gitFS, err := wt.Filesystem.Create(path)
 
 	require.NoError(t, err)
 
 	randomNumber := rand.Intn(10000000000)
-	_, err = rm.Write([]byte(fmt.Sprint(randomNumber)))
+	_, err = gitFS.Write([]byte(fmt.Sprint(randomNumber)))
 	require.NoError(t, err)
 
 	_, err = wt.Add(path)
@@ -96,8 +96,7 @@ func TestCommit(t *testing.T) {
 	require.NoError(t, err)
 	commitAfterTag := "second commit"
 	createCommit(t, r, fmt.Sprintf("%s/foo.go", module), commitAfterTag)
-
-	createCommit(t, r, fmt.Sprintf("%s/foo.go", "notHelpers"), "this commit doesn't touch helpers")
+	createCommit(t, r, fmt.Sprintf("%s/foo.go", "notHelpers"), "this commit doesn't touch the module")
 
 	cm, err := getCommitMessagesFromLastTag(r, version, module)
 	require.NoError(t, err)
@@ -105,20 +104,20 @@ func TestCommit(t *testing.T) {
 	require.Equal(t, commitAfterTag, cm[0])
 }
 
-func TestTagCommitDoesntTouchHelpers(t *testing.T) {
+func TestGetCommitMessagesCanHandleTagNotAffectingModule(t *testing.T) {
 	r, err := git.Init(memory.NewStorage(), memfs.New())
 	require.NoError(t, err)
 
-	require.NoError(t, err)
 	module := "helpers"
-	createCommit(t, r, fmt.Sprintf("%s/foo.go", module), "first commit touches the module")
-	hash := createCommit(t, r, fmt.Sprintf("%s/foo.go", "notHelpers"), "second commit touches the module")
+	createCommit(t, r, fmt.Sprintf("%s/foo.go", module), "this commit touches the module")
+	hash := createCommit(t, r, fmt.Sprintf("%s/foo.go", "notHelpers"), "this commit doesn't touch the module")
 	latestTag := fmt.Sprintf("%s/v0.0.1", module)
 	_, err = r.CreateTag(latestTag, hash, nil)
 	require.NoError(t, err)
 
 	version, err := semver.NewVersion("0.0.1")
 	require.NoError(t, err)
+
 	cm, err := getCommitMessagesFromLastTag(r, version, module)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(cm))
