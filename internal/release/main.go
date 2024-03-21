@@ -120,20 +120,30 @@ func getCommitMessagesFromLastTag(r *git.Repository, lastTagVersion *semver.Vers
 		return nil, fmt.Errorf("failed to get commit from tag: %w", err)
 	}
 
-	headRef, err := r.Head()
+	allCommits, err := r.Log(&git.LogOptions{})
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to get reference: %w", err)
+		return nil, fmt.Errorf("failed to get commits: %w", err)
 	}
 
-	headCommit, err := r.CommitObject(headRef.Hash())
-	if err != nil {
-		return nil, fmt.Errorf("failed to get commit: %w", err)
+	var commitsAfterTag []*object.Commit
+
+	err = allCommits.ForEach(func(c *object.Commit) error {
+		if c.Hash == tagCommit.Hash {
+			// Once we reach the tag's commit, stop iterating
+			return storer.ErrStop
+		}
+		commitsAfterTag = append(commitsAfterTag, c)
+		return nil
+	})
+
+	if err != nil && !errors.Is(err, storer.ErrStop) {
+		return nil, fmt.Errorf("could not iterate over commits %w", err)
 	}
 
 	pathPrefix := fmt.Sprintf("%s/", module)
 
-	commits, err := r.Log(&git.LogOptions{
-		From: headCommit.Hash,
+	commitsOnModule, err := r.Log(&git.LogOptions{
 		PathFilter: func(path string) bool {
 			return strings.HasPrefix(path, pathPrefix)
 		},
@@ -143,22 +153,21 @@ func getCommitMessagesFromLastTag(r *git.Repository, lastTagVersion *semver.Vers
 		return nil, fmt.Errorf("failed to get commits: %w", err)
 	}
 
-	var commitMessages []string
-	// These commits are in the order of most recent first
-	err = commits.ForEach(func(c *object.Commit) error {
-		if c.Hash == tagCommit.Hash {
-			// Once we reach the tag's commit, stop iterating
-			return storer.ErrStop
+	var commitsAfterTagOnModule []string
+	err = commitsOnModule.ForEach(func(c *object.Commit) error {
+		for _, commitAfterTag := range commitsAfterTag {
+			if commitAfterTag.Hash == c.Hash{
+				commitsAfterTagOnModule = append(commitsAfterTagOnModule, c.Message)
+			}
 		}
-		commitMessages = append(commitMessages, c.Message)
 		return nil
 	})
 
-	if err != nil && !errors.Is(err, storer.ErrStop) {
+	if err != nil{
 		return nil, fmt.Errorf("could not iterate over commits %w", err)
 	}
 
-	return commitMessages, nil
+	return commitsAfterTagOnModule, nil
 }
 
 func getModuleTags(r *git.Repository, module string) ([]string, error) {
