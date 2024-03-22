@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2024-Present Defense Unicorn pkg Authors
+// SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 
 // Package helpers provides generic helper functions
 package helpers

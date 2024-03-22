@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2024-Present The Defense Unicorn Pkg Authors
+// SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 // forked from https://www.socketloop.com/tutorials/golang-byte-format-example
 
 // Package helpers provides generic helper functions
