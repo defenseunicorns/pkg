@@ -12,6 +12,12 @@
   "suppressNotifications": [
     "prIgnoreNotification"
   ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["*"],
+      "enabled": false
+    }
+  ],
   "regexManagers": [
     {
       "fileMatch": [
