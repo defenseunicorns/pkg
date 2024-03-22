@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2024-Present The Zarf Authors
+// SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 
-// Package helpers provides generic helper functions with no external imports
+// Package helpers provides generic helper functions
 package helpers
 
 import (
@@ -11,6 +11,11 @@ import (
 	"regexp"
 	"time"
 )
+
+// BoolPtr returns a pointer to a bool.
+func BoolPtr(b bool) *bool {
+	return &b
+}
 
 // Retry will retry a function until it succeeds or the timeout is reached. timeout == 2^attempt * delay.
 func Retry(fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
