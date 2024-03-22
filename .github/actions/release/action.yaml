@@ -1,5 +1,5 @@
-name: install-tools
-description: "Install pipeline tools"
+name: release
+description: Given a module name, bump the version based upon the commit(s) since last release, generate release notes, tag with the bumped version, and trigger a GitHub release.
 inputs:
   module:
     description: "The module to be released"
