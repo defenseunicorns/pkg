@@ -1,0 +1,38 @@
+name: release
+description: Given a module name, bump the version based upon the commit(s) since last release, generate release notes, tag with the bumped version, and trigger a GitHub release.
+inputs:
+  module:
+    description: "The module to be released"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: bump module version
+      id: module-tag
+      run: |
+        cd internal/release
+        echo "new-version=$(go run main.go ${{ inputs.module }})" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: install git cliffs
+      env:
+        # renovate: datasource=github-tags depName=orhun/git-cliff versioning=semver
+        VERSION: 2.1.2
+      run: |
+        curl --location --output /tmp/git-cliffs.tar.gz https://github.com/orhun/git-cliff/releases/download/v${VERSION}/git-cliff-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
+        tar -xvzf /tmp/git-cliffs.tar.gz -C /tmp
+        mv /tmp/git-cliff-${VERSION}/git-cliff /usr/local/bin/
+      shell: bash
+
+    - name: generate release notes
+      run: |
+        git cliff --config cliff.toml --unreleased --tag ${{ steps.module-tag.outputs.new-version }} --include-path "${{ inputs.module }}/*" | tee notes.md
+      shell: bash
+
+    - name: Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release create ${{ steps.module-tag.outputs.new-version }} --notes-file notes.md
+      shell: bash
