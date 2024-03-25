@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 
-// package main outputs the next semver version for the given package using git history and conventional commits
 package main
 
 import (
