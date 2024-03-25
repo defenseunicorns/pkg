@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2021-Present The Zarf Authors
+// SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 
 // Package oci contains functions for interacting with artifacts stored in OCI registries.
 package oci
