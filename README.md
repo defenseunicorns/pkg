@@ -1,6 +1,4 @@
-# pkg
-
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/defenseunicorns/pkg/badge)](https://securityscorecards.dev/viewer/?uri=github.com/defenseunicorns/pkg)
+# pkg [![Go version](https://img.shields.io/github/go-mod/go-version/defenseunicorns/pkg?filename=helpers/go.mod)](https://go.dev/) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/defenseunicorns/pkg/badge)](https://securityscorecards.dev/viewer/?uri=github.com/defenseunicorns/pkg)
 
 ## Overview
 
