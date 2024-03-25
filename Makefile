@@ -31,7 +31,7 @@ test-%:
 	cd $(subst :,/,$*); go test ./... -coverprofile cover.out ;
 
 lint:
-	revive -config revive.toml ./..
+	revive -config revive.toml ./...
 
 scan:
 	$(MAKE) $(addprefix scan-, $(MODULES))
