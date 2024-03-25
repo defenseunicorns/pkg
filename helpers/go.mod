@@ -1,6 +1,6 @@
 module github.com/defenseunicorns/pkg/helpers
 
-go 1.22.0
+go 1.21.8
 
 require (
 	github.com/otiai10/copy v1.14.0
