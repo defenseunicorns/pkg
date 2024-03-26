@@ -5,14 +5,38 @@ on:
     branches:
       - main
     paths:
-      - 'helpers/**'
+      - "helpers/**"
 
 permissions:
   contents: read
 
 jobs:
+  bump-version-and-release-notes:
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.bump-version.outputs.new-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          fetch-depth: 0
+
+      - name: Bump Version
+        id: bump-version
+        uses: ./.github/actions/bump-version
+        with:
+          module: "helpers"
+
+      - name: Generate Release Notes
+        uses: ./.github/actions/release-notes
+        with:
+          module: "helpers"
+          tag: ${{ steps.bump-version.outputs.new-version }}
+
   release:
     runs-on: ubuntu-latest
+    needs: bump-version-and-release-notes
+    environment: release
     permissions:
       contents: write
     steps:
@@ -21,7 +45,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Download Release Notes
+        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
+        with:
+          name: release-notes
+          path: notes.md
+
       - name: Release
         uses: ./.github/actions/release
         with:
           module: "helpers"
+          new-version: ${{ needs.bump-version-and-release-notes.outputs.new-version }}
