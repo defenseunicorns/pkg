@@ -34,5 +34,5 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        gh release create ${{ steps.module-tag.outputs.new-version }} --notes-file notes.md
+        gh release create ${{ steps.module-tag.outputs.new-version }} --title ${{ steps.module-tag.outputs.new-version }} --notes-file notes.md
       shell: bash
