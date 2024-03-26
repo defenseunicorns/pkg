@@ -28,17 +28,6 @@ jobs:
     # contents: write via the GH app
     environment: release
     steps:
-      - name: Checkout
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-        with:
-          fetch-depth: 0
-
-      - name: Download Release Notes
-        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
-        with:
-          name: release-notes
-          path: notes.md
-
       - name: Release
         uses: ./.github/actions/release
         with:
