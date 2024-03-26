@@ -46,4 +46,4 @@ scan-%:
 	cd $(subst :,/,$*); syft scan . -o json | grype --fail-on low
 
 check-go-version-consistency:
-	hack/check-go-version.sh
+	hack/check_go_version.sh
