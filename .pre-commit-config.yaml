@@ -26,6 +26,12 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: fmt
+        name: go fmt
+        entry: make fmt
+        language: system
+        pass_filenames: false
+
       - id: lint
         name: go lint
         entry: make lint

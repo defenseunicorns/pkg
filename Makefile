@@ -18,6 +18,12 @@ fmt:
 fmt-%:
 	cd $(subst :,/,$*); go fmt ./...
 
+check-fmt:
+	$(MAKE) $(addprefix check-fmt-, $(MODULES))
+
+check-fmt-%:
+	cd $(subst :,/,$*); test -z "$$(gofmt -l .)"
+
 vet:
 	$(MAKE) $(addprefix vet-, $(MODULES))
 
