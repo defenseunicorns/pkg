@@ -1,4 +1,4 @@
-name: release
+name: bump-version
 description: Given a module name, bump the version based upon the commit(s) since last release.
 inputs:
   module:
