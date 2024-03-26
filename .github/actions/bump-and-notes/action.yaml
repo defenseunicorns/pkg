@@ -4,13 +4,25 @@ inputs:
   module:
     description: "The module to be released"
     required: true
-  new-version:
-    description: "The tag to generate release notes for"
-    required: true
 
 runs:
   using: composite
   steps:
+    - name: checkout
+      uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      with:
+        fetch-depth: 0
+
+    - name: bump module version
+      env:
+        MODULE: ${{ inputs.module }}
+      id: bump-version
+      run: |
+        set -euo pipefail
+        cd internal/release
+        echo "new-version=$(go run main.go "$MODULE")" >> "$GITHUB_OUTPUT"
+      shell: bash
+
     - name: install git cliff
       env:
         # renovate: datasource=github-tags depName=orhun/git-cliff versioning=semver
@@ -23,7 +35,7 @@ runs:
 
     - name: generate release notes
       env:
-        NEW_VERSION: ${{ inputs.new-version }}
+        NEW_VERSION: ${{ steps.bump-version.outputs.new-version }}
         MODULE_PATH: ${{ inputs.module }}
       run: |
         git cliff --config cliff.toml --unreleased --tag "$TAG" --include-path "$MODULE/*" | tee notes.md

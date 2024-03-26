@@ -16,29 +16,17 @@ jobs:
     outputs:
       new-version: ${{ steps.bump-version.outputs.new-version }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-        with:
-          fetch-depth: 0
-
-      - name: Bump Version
-        id: bump-version
-        uses: ./.github/actions/bump-version
-        with:
-          module: "oci"
-
-      - name: Generate Release Notes
+      - name: Bump Version and Generate Release Notes
         uses: ./.github/actions/release-notes
+        id: bump-version
         with:
           module: "oci"
-          tag: ${{ steps.bump-version.outputs.new-version }}
 
   release:
     runs-on: ubuntu-latest
     needs: bump-version-and-release-notes
+    # contents: write via the GH app
     environment: release
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
