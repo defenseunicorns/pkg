@@ -1,6 +1,6 @@
 module github.com/defenseunicorns/pkg/oci
 
-go 1.22.1
+go 1.21.8
 
 replace github.com/defenseunicorns/pkg/helpers => ../helpers
 
