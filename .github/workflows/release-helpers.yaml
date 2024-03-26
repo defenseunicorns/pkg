@@ -16,8 +16,13 @@ jobs:
     outputs:
       new-version: ${{ steps.bump-version.outputs.new-version }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          fetch-depth: 0
+
       - name: Bump Version and Generate Release Notes
-        uses: ./.github/actions/release-notes
+        uses: ./.github/actions/bump-and-notes
         id: bump-version
         with:
           module: "helpers"
@@ -28,6 +33,11 @@ jobs:
     # contents: write via the GH app
     environment: release
     steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          fetch-depth: 0
+
       - name: Release
         uses: ./.github/actions/release
         with:
