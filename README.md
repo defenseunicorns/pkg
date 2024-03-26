@@ -9,6 +9,7 @@
 | Module | Import | Description |
 | --- | --- | --- |
 | [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=helpers%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/helpers) | `go get github.com/defenseunicorns/pkg/helpers` | Common helper functions for Go. |
+| [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=oci%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/oci) | `go get github.com/defenseunicorns/pkg/oci` | tools for interacting with artifacts stored in OCI registries. |
 
 ## Contributing
 

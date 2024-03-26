@@ -18,6 +18,12 @@ fmt:
 fmt-%:
 	cd $(subst :,/,$*); go fmt ./...
 
+check-fmt:
+	$(MAKE) $(addprefix check-fmt-, $(MODULES))
+
+check-fmt-%:
+	cd $(subst :,/,$*); test -z "$$(gofmt -l .)"
+
 vet:
 	$(MAKE) $(addprefix vet-, $(MODULES))
 
@@ -38,3 +44,6 @@ scan:
 
 scan-%:
 	cd $(subst :,/,$*); syft scan . -o json | grype --fail-on low
+
+check-go-version-consistency:
+	hack/check_go_version.sh

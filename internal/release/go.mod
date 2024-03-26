@@ -1,6 +1,6 @@
 module github.com/defenseunicorns/pkg/internal/release
 
-go 1.22.1
+go 1.21.8
 
 require (
 	github.com/Masterminds/semver v1.5.0
