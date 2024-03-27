@@ -5,16 +5,33 @@ on:
     branches:
       - main
     paths:
-      - 'oci/**'
+      - "oci/**"
 
 permissions:
   contents: read
 
 jobs:
+  bump-version-and-release-notes:
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.bump-version.outputs.new-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          fetch-depth: 0
+
+      - name: Bump Version and Generate Release Notes
+        uses: ./.github/actions/bump-and-notes
+        id: bump-version
+        with:
+          module: "oci"
+
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    needs: bump-version-and-release-notes
+    # contents: write via the GH app
+    environment: release
     steps:
       - name: Checkout
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
@@ -25,3 +42,4 @@ jobs:
         uses: ./.github/actions/release
         with:
           module: "oci"
+          new-version: ${{ needs.bump-version-and-release-notes.outputs.new-version }}

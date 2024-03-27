@@ -1,38 +1,32 @@
 name: release
-description: Given a module name, bump the version based upon the commit(s) since last release, generate release notes, tag with the bumped version, and trigger a GitHub release.
+description: Tag with the bumped version, and trigger a GitHub release.
 inputs:
-  module:
-    description: "The module to be released"
+  new-version:
+    description: "The new version to be released"
     required: true
 
 runs:
   using: composite
   steps:
-    - name: bump module version
-      id: module-tag
-      run: |
-        cd internal/release
-        echo "new-version=$(go run main.go ${{ inputs.module }})" >> $GITHUB_OUTPUT
-      shell: bash
+    - name: Download Release Notes
+      uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
+      with:
+        name: release-notes
+        path: notes.md
 
-    - name: install git cliffs
-      env:
-        # renovate: datasource=github-tags depName=orhun/git-cliff versioning=semver
-        VERSION: 2.1.2
-      run: |
-        curl --location --output /tmp/git-cliffs.tar.gz https://github.com/orhun/git-cliff/releases/download/v${VERSION}/git-cliff-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
-        tar -xvzf /tmp/git-cliffs.tar.gz -C /tmp
-        mv /tmp/git-cliff-${VERSION}/git-cliff /usr/local/bin/
-      shell: bash
-
-    - name: generate release notes
-      run: |
-        git cliff --config cliff.toml --unreleased --tag ${{ steps.module-tag.outputs.new-version }} --include-path "${{ inputs.module }}/*" | tee notes.md
-      shell: bash
+    - name: Get pkg app token
+      id: pkg-app-token
+      uses: actions/create-github-app-token@f2acddfb5195534d487896a656232b016a682f3c # v1.9.0
+      with:
+        app-id: ${{ vars.PKG_WORKFLOW_GITHUB_APP_ID }}
+        private-key: ${{ secrets.PKG_WORKFLOW_GITHUB_APP_SECRET }}
+        owner: defenseunicorns
+        repositories: pkg
 
     - name: Release
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ steps.pkg-app-token.outputs.token }}
+        NEW_VERSION: ${{ inputs.new-version }}
       run: |
-        gh release create ${{ steps.module-tag.outputs.new-version }} --title ${{ steps.module-tag.outputs.new-version }} --notes-file notes.md
+        gh release create "$NEW_VERSION" --title "$NEW_VERSION" --notes-file notes.md
       shell: bash
