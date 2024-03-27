@@ -1,0 +1,42 @@
+name: release-notes
+description: Generate release notes for a given tag
+inputs:
+  module:
+    description: "The module to be released"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: bump module version
+      env:
+        MODULE: ${{ inputs.module }}
+      id: bump-version
+      run: |
+        cd internal/release
+        echo "new-version=$(go run main.go "$MODULE")" >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - name: install git cliff
+      env:
+        # renovate: datasource=github-tags depName=orhun/git-cliff versioning=semver
+        VERSION: 2.1.2
+      run: |
+        curl --location --output /tmp/git-cliff.tar.gz https://github.com/orhun/git-cliff/releases/download/v${VERSION}/git-cliff-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
+        tar -xvzf /tmp/git-cliff.tar.gz -C /tmp
+        mv /tmp/git-cliff-${VERSION}/git-cliff /usr/local/bin/
+      shell: bash
+
+    - name: generate release notes
+      env:
+        NEW_VERSION: ${{ steps.bump-version.outputs.new-version }}
+        MODULE: ${{ inputs.module }}
+      run: |
+        git cliff --config cliff.toml --unreleased --tag "$TAG" --include-path "$MODULE/**" | tee notes.md
+      shell: bash
+
+    - name: upload release notes
+      uses: actions/upload-artifact@ef09cdac3e2d3e60d8ccadda691f4f1cec5035cb # v4.3.1
+      with:
+        name: release-notes
+        path: notes.md
