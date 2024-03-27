@@ -13,7 +13,6 @@ runs:
         MODULE: ${{ inputs.module }}
       id: bump-version
       run: |
-        set -euo pipefail
         cd internal/release
         echo "new-version=$(go run main.go "$MODULE")" >> "$GITHUB_OUTPUT"
       shell: bash
@@ -33,7 +32,7 @@ runs:
         NEW_VERSION: ${{ steps.bump-version.outputs.new-version }}
         MODULE: ${{ inputs.module }}
       run: |
-        git cliff --config cliff.toml --unreleased --tag "$TAG" --include-path "$MODULE/*" | tee notes.md
+        git cliff --config cliff.toml --unreleased --tag "$TAG" --include-path "$MODULE/**" | tee notes.md
       shell: bash
 
     - name: upload release notes
