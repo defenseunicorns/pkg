@@ -73,11 +73,18 @@ func IsTextFile(path string) (bool, error) {
 	return isTextCheck[0] && isTextCheck[1], nil
 }
 
-// First30last30 returns the source string that has been trimmed to 30 characters at the beginning and end.
-func First30last30(s string) string {
+// First30Last30 returns the source string that has been trimmed to 30 characters at the beginning and end.
+func First30Last30(s string) string {
 	if len(s) > 60 {
 		return s[0:27] + "..." + s[len(s)-26:]
 	}
 
 	return s
+}
+
+// First30last30 returns the source string that has been trimmed to 30 characters at the beginning and end.
+//
+// Deprecated: Use First30Last30 instead.
+func First30last30(s string) string {
+	return First30Last30(s)
 }
