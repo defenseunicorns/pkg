@@ -20,9 +20,10 @@ repos:
 
   - repo: local
     hooks:
-      - id: unit-test
-        name: unit test
-        entry: make test
+
+      - id: fmt
+        name: go fmt
+        entry: make fmt
         language: system
         pass_filenames: false
 

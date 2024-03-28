@@ -159,14 +159,14 @@ func getCommitMessagesFromLastTag(r *git.Repository, lastTagVersion *semver.Vers
 	var commitsAfterTagOnModule []string
 	err = commitsOnModule.ForEach(func(c *object.Commit) error {
 		for _, commitAfterTag := range commitsAfterTag {
-			if commitAfterTag.Hash == c.Hash{
+			if commitAfterTag.Hash == c.Hash {
 				commitsAfterTagOnModule = append(commitsAfterTagOnModule, c.Message)
 			}
 		}
 		return nil
 	})
 
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("could not iterate over commits %w", err)
 	}
 

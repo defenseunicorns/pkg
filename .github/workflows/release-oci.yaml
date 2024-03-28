@@ -1,11 +1,11 @@
-name: Release Helpers
+name: Release OCI
 
 on:
   push:
     branches:
       - main
     paths:
-      - "helpers/**"
+      - "oci/**"
 
 permissions:
   contents: read
@@ -25,7 +25,7 @@ jobs:
         uses: ./.github/actions/bump-and-notes
         id: bump-version
         with:
-          module: "helpers"
+          module: "oci"
 
   release:
     runs-on: ubuntu-latest
@@ -41,5 +41,5 @@ jobs:
       - name: Release
         uses: ./.github/actions/release
         with:
-          module: "helpers"
+          module: "oci"
           new-version: ${{ needs.bump-version-and-release-notes.outputs.new-version }}
