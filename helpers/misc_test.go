@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -198,4 +199,90 @@ func (suite *TestMiscSuite) TestBoolPtr() {
 
 func TestMisc(t *testing.T) {
 	suite.Run(t, new(TestMiscSuite))
+}
+
+func TestMergePathAndValueIntoMap(t *testing.T) {
+	type args struct {
+		m     map[string]interface{}
+		path  string
+		value interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		want    map[string]any
+	}{
+		{
+			name:    "nested map creation",
+			args:    args{m: make(map[string]interface{}), path: "a.b.c", value: "hello"},
+			wantErr: false,
+			want: map[string]any{
+				"a": map[string]any{
+					"b": map[string]any{
+						"c": "hello",
+					},
+				},
+			},
+		},
+		{
+			name: "overwrite existing value",
+			args: args{m: map[string]interface{}{"a": map[string]any{"b": map[string]any{"c": "initial"}}},
+				path: "a.b.c", value: "updated"},
+			wantErr: false,
+			want: map[string]any{
+				"a": map[string]any{
+					"b": map[string]any{
+						"c": "updated",
+					},
+				},
+			},
+		},
+		{
+			name:    "deeply nested map creation",
+			args:    args{m: make(map[string]interface{}), path: "a.b.c.d.e.f", value: 42},
+			wantErr: false,
+			want: map[string]any{
+				"a": map[string]any{
+					"b": map[string]any{
+						"c": map[string]any{
+							"d": map[string]any{
+								"e": map[string]any{
+									"f": 42,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "empty path",
+			args:    args{m: make(map[string]interface{}), path: "", value: "root level"},
+			wantErr: false,
+			want: map[string]any{
+				"": "root level",
+			},
+		},
+		{
+			name:    "root level value",
+			args:    args{m: make(map[string]interface{}), path: "root", value: "root value"},
+			wantErr: false,
+			want: map[string]any{
+				"root": "root value",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := MergePathAndValueIntoMap(tt.args.m, tt.args.path, tt.args.value)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MergePathAndValueIntoMap() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !reflect.DeepEqual(tt.args.m, tt.want) {
+				t.Errorf("Map structure mismatch: got %v, want %v", tt.args.m, tt.want)
+			}
+		})
+	}
 }
