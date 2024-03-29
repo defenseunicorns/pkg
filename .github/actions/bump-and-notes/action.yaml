@@ -8,6 +8,13 @@ inputs:
 runs:
   using: composite
   steps:
+    - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version: 1.21.x
+        cache-dependency-path: |
+          internal/release/go.sum
+          internal/release/go.mod
+
     - name: bump module version
       env:
         MODULE: ${{ inputs.module }}
@@ -32,7 +39,9 @@ runs:
         NEW_VERSION: ${{ steps.bump-version.outputs.new-version }}
         MODULE: ${{ inputs.module }}
       run: |
-        git cliff --config cliff.toml --unreleased --tag "$TAG" --include-path "$MODULE/**" | tee notes.md
+        git cliff --config cliff.toml --unreleased --tag "$NEW_VERSION" --include-path "$MODULE/**" | tee notes.md
+        echo "## $NEW_VERSION" >> notes.md
+        cat notes.md >> "$GITHUB_STEP_SUMMARY"
       shell: bash
 
     - name: upload release notes
