@@ -165,7 +165,7 @@ func MergePathAndValueIntoMap(m map[string]any, path string, value any) error {
 
 			nextMap, ok := current[part].(map[string]any)
 			if !ok {
-				return fmt.Errorf("conflict at '%s', expected map but got %T", strings.Join(pathParts[:i+1], "."), current[part])
+				return fmt.Errorf("conflict at '%q', expected map but got %T", strings.Join(pathParts[:i+1], "."), current[part])
 			}
 			current = nextMap
 		}

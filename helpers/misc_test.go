@@ -201,7 +201,7 @@ func TestMisc(t *testing.T) {
 	suite.Run(t, new(TestMiscSuite))
 }
 
-func TestMergePathAndValueIntoMap(t *testing.T) {
+func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 	type args struct {
 		m     map[string]interface{}
 		path  string
@@ -274,15 +274,15 @@ func TestMergePathAndValueIntoMap(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		suite.Run(tt.name, func() {
 			err := MergePathAndValueIntoMap(tt.args.m, tt.args.path, tt.args.value)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("MergePathAndValueIntoMap() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				suite.Error(err, "Expected an error")
+			} else {
+				suite.NoError(err, "Expected no error")
 			}
 
-			if !reflect.DeepEqual(tt.args.m, tt.want) {
-				t.Errorf("Map structure mismatch: got %v, want %v", tt.args.m, tt.want)
-			}
+			suite.True(reflect.DeepEqual(tt.args.m, tt.want), "Map structure mismatch: got %v, want %v", tt.args.m, tt.want)
 		})
 	}
 }
