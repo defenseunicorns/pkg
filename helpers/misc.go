@@ -8,6 +8,7 @@ import (
 	"math"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -145,4 +146,29 @@ func MergeNonZero[T any](original T, overrides T) T {
 		}
 	}
 	return originalValue.Elem().Interface().(T)
+}
+
+// MergePathAndValueIntoMap takes a path in dot notation as a string and a value (also as a string for simplicity),
+// then merges this into the provided map. The value can be any type.
+func MergePathAndValueIntoMap(m map[string]any, path string, value any) error {
+	pathParts := strings.Split(path, ".")
+	current := m
+	for i, part := range pathParts {
+		if i == len(pathParts)-1 {
+			// Set the value at the last key in the path.
+			current[part] = value
+		} else {
+			if _, exists := current[part]; !exists {
+				// If the part does not exist, create a new map for it.
+				current[part] = make(map[string]any)
+			}
+
+			nextMap, ok := current[part].(map[string]any)
+			if !ok {
+				return fmt.Errorf("conflict at %q, expected map but got %T", strings.Join(pathParts[:i+1], "."), current[part])
+			}
+			current = nextMap
+		}
+	}
+	return nil
 }
