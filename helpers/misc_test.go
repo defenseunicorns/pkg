@@ -75,21 +75,6 @@ func (suite *TestMiscSuite) TestRetry() {
 	suite.Equal(3, logCount)
 }
 
-func (suite *TestMiscSuite) TestMergeMap() {
-	expected := map[string]interface{}{
-		"different": "value",
-		"hello":     "it's me",
-		"unique":    "value",
-		"nested": map[string]interface{}{
-			"values":    "doggo",
-			"different": "value",
-		},
-	}
-
-	result := MergeMap(suite.map1, suite.map2)
-	suite.Equal(expected, result)
-}
-
 func (suite *TestMiscSuite) TestTransformMapKeys() {
 	expected := map[string]interface{}{
 		"HELLO":  "world",

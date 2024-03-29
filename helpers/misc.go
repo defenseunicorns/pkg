@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"reflect"
 	"regexp"
@@ -37,21 +38,6 @@ func Retry(fn func() error, retries int, delay time.Duration, logger func(format
 	return err
 }
 
-// MergeMap merges map m2 with m1 overwriting common values with m2's values.
-func MergeMap[T any](m1, m2 map[string]T) (r map[string]T) {
-	r = map[string]T{}
-
-	for key, value := range m1 {
-		r[key] = value
-	}
-
-	for key, value := range m2 {
-		r[key] = value
-	}
-
-	return r
-}
-
 // TransformMapKeys takes a map and transforms its keys using the provided function.
 func TransformMapKeys[T any](m map[string]T, transform func(string) string) (r map[string]T) {
 	r = map[string]T{}
@@ -65,10 +51,9 @@ func TransformMapKeys[T any](m map[string]T, transform func(string) string) (r m
 
 // TransformAndMergeMap transforms keys in both maps then merges map m2 with m1 overwriting common values with m2's values.
 func TransformAndMergeMap[T any](m1, m2 map[string]T, transform func(string) string) (r map[string]T) {
-	mt1 := TransformMapKeys(m1, transform)
+	r = TransformMapKeys(m1, transform)
 	mt2 := TransformMapKeys(m2, transform)
-	r = MergeMap(mt1, mt2)
-
+	maps.Copy(r, mt2)
 	return r
 }
 
