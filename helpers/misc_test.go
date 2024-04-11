@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -79,13 +80,16 @@ func (suite *TestMiscSuite) TestRetry() {
 func TestContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-
+	count := 0 
 	fn := func() error {
+		count++
 		return errors.New("Not failing from context cancelled")
 	}
 	logger := func(_ string, _ ...any) {}
 
-	err := RetryWithContext(ctx, fn, 5, 0, logger)
+	waitThatsNotCalled := 1000000 * time.Minute
+	err := RetryWithContext(ctx, fn, 5, waitThatsNotCalled, logger)
+	require.Equal(t, 0, count)
 	if !errors.Is(err, context.Canceled) {
 		t.Errorf("Expected context cancellation error, but it wasn't")
 	}

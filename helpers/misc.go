@@ -36,7 +36,15 @@ func RetryWithContext(ctx context.Context, fn func() error, retries int, delay t
 
 			logger("Retrying (%d/%d) in %s: %s", r+1, retries, backoff, err.Error())
 
-			time.Sleep(backoff)
+			timer := time.NewTimer(backoff)
+			select {
+			case <-timer.C:
+			case <-ctx.Done():
+				if !timer.Stop() {
+					<-timer.C
+				}
+				return ctx.Err()
+			}
 		}
 	}
 
