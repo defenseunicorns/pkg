@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"strings"
@@ -73,6 +74,21 @@ func (suite *TestMiscSuite) TestRetry() {
 	suite.NoError(err)
 	suite.Equal(4, count)
 	suite.Equal(3, logCount)
+}
+
+func TestContextCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	fn := func() error {
+		return errors.New("Not failing from context cancelled")
+	}
+	logger := func(_ string, _ ...any) {}
+
+	err := RetryWithContext(ctx, fn, 5, 0, logger)
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("Expected context cancellation error, but it wasn't")
+	}
 }
 
 func (suite *TestMiscSuite) TestTransformMapKeys() {

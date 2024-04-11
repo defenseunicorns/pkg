@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"context"
 	"fmt"
 	"maps"
 	"math"
@@ -18,24 +19,33 @@ func BoolPtr(b bool) *bool {
 	return &b
 }
 
-// Retry will retry a function until it succeeds or the timeout is reached. timeout == 2^attempt * delay.
-func Retry(fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
+func RetryWithContext(ctx context.Context, fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
 	var err error
 	for r := 0; r < retries; r++ {
-		err = fn()
-		if err == nil {
-			break
+		select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+
+			err = fn()
+			if err == nil {
+				break
+			}
+			pow := math.Pow(2, float64(r))
+			backoff := delay * time.Duration(pow)
+
+			logger("Retrying (%d/%d) in %s: %s", r+1, retries, backoff, err.Error())
+
+			time.Sleep(backoff)
 		}
-
-		pow := math.Pow(2, float64(r))
-		backoff := delay * time.Duration(pow)
-
-		logger("Retrying (%d/%d) in %s: %s", r+1, retries, backoff, err.Error())
-
-		time.Sleep(backoff)
 	}
 
 	return err
+}
+
+// Retry will retry a function until it succeeds or the timeout is reached. timeout == 2^attempt * delay.
+func Retry(fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
+	return RetryWithContext(context.TODO(), fn, retries, delay, logger) 
 }
 
 // TransformMapKeys takes a map and transforms its keys using the provided function.
