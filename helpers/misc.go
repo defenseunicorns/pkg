@@ -19,7 +19,7 @@ func BoolPtr(b bool) *bool {
 	return &b
 }
 
-// RetryWithContext will retry a function until it succeeds or the timeout is reached. timeout == 2^attempt * delay.
+// RetryWithContext will retry a function until it succeeds, the timeout is reached, or context is done. timeout == 2^attempt * delay.
 func RetryWithContext(ctx context.Context, fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
 	var err error
 	for r := 0; r < retries; r++ {
