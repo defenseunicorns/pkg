@@ -80,7 +80,7 @@ func (suite *TestMiscSuite) TestRetry() {
 func TestContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	count := 0 
+	count := 0
 	fn := func() error {
 		count++
 		return errors.New("Not failing from context cancelled")

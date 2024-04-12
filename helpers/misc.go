@@ -19,13 +19,14 @@ func BoolPtr(b bool) *bool {
 	return &b
 }
 
+// RetryWithContext will retry a function until it succeeds or the timeout is reached. timeout == 2^attempt * delay.
 func RetryWithContext(ctx context.Context, fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
 	var err error
 	for r := 0; r < retries; r++ {
 		select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
 
 			err = fn()
 			if err == nil {
@@ -53,7 +54,7 @@ func RetryWithContext(ctx context.Context, fn func() error, retries int, delay t
 
 // Retry will retry a function until it succeeds or the timeout is reached. timeout == 2^attempt * delay.
 func Retry(fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
-	return RetryWithContext(context.TODO(), fn, retries, delay, logger) 
+	return RetryWithContext(context.TODO(), fn, retries, delay, logger)
 }
 
 // TransformMapKeys takes a map and transforms its keys using the provided function.
