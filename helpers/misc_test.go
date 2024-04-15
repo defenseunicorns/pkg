@@ -49,8 +49,9 @@ func (suite *TestMiscSuite) SetupSuite() {
 }
 
 func TestRetry(t *testing.T) {
-	t.Run("RetryLogic", func(t *testing.T) {
-		var count int
+	t.Run("RetriesWhenThereAreFailures", func(t *testing.T) {
+		count := 0
+		logCount := 0
 		returnedErr := errors.New("count exceeded")
 		countFn := func() error {
 			count++
@@ -59,23 +60,13 @@ func TestRetry(t *testing.T) {
 			}
 			return nil
 		}
-		var logCount int
 		loggerFn := func(_ string, _ ...any) {
 			logCount++
 		}
 
-		count = 0
-		logCount = 0
 		err := Retry(countFn, 3, 0, loggerFn)
 		require.ErrorIs(t, err, returnedErr)
 		require.Equal(t, 3, count)
-		require.Equal(t, 3, logCount)
-
-		count = 0
-		logCount = 0
-		err = Retry(countFn, 4, 0, loggerFn)
-		require.NoError(t, err)
-		require.Equal(t, 4, count)
 		require.Equal(t, 3, logCount)
 	})
 
@@ -113,6 +104,40 @@ func TestRetry(t *testing.T) {
 		err := RetryWithContext(ctx, fn, 3, 0, logger)
 		require.Equal(t, 2, count)
 		require.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("NoErr", func(t *testing.T) {
+		count := 0
+		fn := func() error {
+			count++
+			return nil
+		}
+
+		logger := func(_ string, _ ...any) {}
+
+		err := RetryWithContext(context.TODO(), fn, 3, 0, logger)
+		require.ErrorIs(t, err, nil)
+		require.Equal(t, 1, count)
+	})
+
+	t.Run("ContextCancellationDeadline", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(2*time.Second))
+		defer cancel()
+
+		count := 0
+		fn := func() error {
+			count++
+			return errors.New("Always fail")
+		}
+
+		logger := func(_ string, _ ...any) {}
+
+		err := RetryWithContext(ctx, fn, 4, 1*time.Second, logger)
+		// Function should be called twice, the first time will fail and take one second
+		// the second retry is called which should take two seconds for a total of three seconds
+		// but the function will cancel that timeout before the two seconds are over
+		require.Equal(t, 2, count)
+		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 
 }

@@ -19,7 +19,12 @@ func BoolPtr(b bool) *bool {
 	return &b
 }
 
-// RetryWithContext will retry a function until it succeeds, the timeout is reached, or context is done. timeout == 2^attempt * delay.
+// RetryWithContext will retry a function until it succeeds, the timeout is reached, or context is done. timeout == (2^attempt) * delay.
+// attempt starts at 0
+// For example with three retries and one second delay you would see the following
+// first retry: one second delay
+// second retry: two second delay
+// third retry: four second delay
 func RetryWithContext(ctx context.Context, fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
 	var err error
 	for r := 0; r < retries; r++ {
@@ -27,11 +32,17 @@ func RetryWithContext(ctx context.Context, fn func() error, retries int, delay t
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-
 			err = fn()
 			if err == nil {
-				break
+				return nil
 			}
+
+			// No reason to wait when we aren't going to retry again
+			if r+1 == retries {
+				logger(err.Error())
+				return err
+			}
+
 			pow := math.Pow(2, float64(r))
 			backoff := delay * time.Duration(pow)
 
@@ -52,7 +63,12 @@ func RetryWithContext(ctx context.Context, fn func() error, retries int, delay t
 	return err
 }
 
-// Retry will retry a function until it succeeds or the timeout is reached. timeout == 2^attempt * delay.
+// Retry will retry a function until it succeeds, or the timeout is reached. timeout == (2^attempt) * delay.
+// attempt starts at 0
+// For example with three retries and one second delay you would see the following
+// first retry: one second delay
+// second retry: two second delay
+// third retry: four second delay
 func Retry(fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
 	return RetryWithContext(context.TODO(), fn, retries, delay, logger)
 }
