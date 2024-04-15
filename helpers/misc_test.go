@@ -79,7 +79,7 @@ func TestRetry(t *testing.T) {
 		require.Equal(t, 3, logCount)
 	})
 
-	t.Run("ContextCancellationBefore start", func(t *testing.T) {
+	t.Run("ContextCancellationBeforeStart", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 		count := 0
