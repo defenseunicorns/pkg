@@ -48,51 +48,73 @@ func (suite *TestMiscSuite) SetupSuite() {
 	}
 }
 
-func (suite *TestMiscSuite) TestRetry() {
-	var count int
-	countFn := func() error {
-		count++
-		if count < 4 {
-			return errors.New("count exceeded")
+func TestRetry(t *testing.T) {
+	t.Run("RetryLogic", func(t *testing.T) {
+		var count int
+		returnedErr := errors.New("count exceeded")
+		countFn := func() error {
+			count++
+			if count < 4 {
+				return returnedErr
+			}
+			return nil
 		}
-		return nil
-	}
-	var logCount int
-	loggerFn := func(_ string, _ ...any) {
-		logCount++
-	}
+		var logCount int
+		loggerFn := func(_ string, _ ...any) {
+			logCount++
+		}
 
-	count = 0
-	logCount = 0
-	err := Retry(countFn, 3, 0, loggerFn)
-	suite.Error(err)
-	suite.Equal(3, count)
-	suite.Equal(3, logCount)
+		count = 0
+		logCount = 0
+		err := Retry(countFn, 3, 0, loggerFn)
+		require.ErrorIs(t, err, returnedErr)
+		require.Equal(t, 3, count)
+		require.Equal(t, 3, logCount)
 
-	count = 0
-	logCount = 0
-	err = Retry(countFn, 4, 0, loggerFn)
-	suite.NoError(err)
-	suite.Equal(4, count)
-	suite.Equal(3, logCount)
-}
+		count = 0
+		logCount = 0
+		err = Retry(countFn, 4, 0, loggerFn)
+		require.NoError(t, err)
+		require.Equal(t, 4, count)
+		require.Equal(t, 3, logCount)
+	})
 
-func TestContextCancellation(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	count := 0
-	fn := func() error {
-		count++
-		return errors.New("Not failing from context cancelled")
-	}
-	logger := func(_ string, _ ...any) {}
+	t.Run("ContextCancellationBefore start", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		count := 0
+		fn := func() error {
+			count++
+			return errors.New("Never here since context got cancelled")
+		}
+		logger := func(_ string, _ ...any) {}
 
-	waitThatsNotCalled := 1000000 * time.Minute
-	err := RetryWithContext(ctx, fn, 5, waitThatsNotCalled, logger)
-	require.Equal(t, 0, count)
-	if !errors.Is(err, context.Canceled) {
-		t.Errorf("Expected context cancellation error, but it wasn't")
-	}
+		waitThatsNotCalled := 1000000 * time.Minute
+		err := RetryWithContext(ctx, fn, 5, waitThatsNotCalled, logger)
+		require.Equal(t, 0, count)
+		require.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("ContextCancellationDuringExecution", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		count := 0
+		fn := func() error {
+			count++
+			if count < 2 {
+				return errors.New("Always fail")
+			}
+			cancel()
+			return errors.New("don't care about this error since we've cancelled retry we will always return context.cancelled")
+		}
+
+		logger := func(_ string, _ ...any) {}
+
+		err := RetryWithContext(ctx, fn, 3, 0, logger)
+		require.Equal(t, 2, count)
+		require.ErrorIs(t, err, context.Canceled)
+	})
+
 }
 
 func (suite *TestMiscSuite) TestTransformMapKeys() {
