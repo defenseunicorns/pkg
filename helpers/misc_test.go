@@ -67,7 +67,7 @@ func TestRetry(t *testing.T) {
 		err := Retry(countFn, 3, 0, loggerFn)
 		require.ErrorIs(t, err, returnedErr)
 		require.Equal(t, 3, count)
-		require.Equal(t, 3, logCount)
+		require.Equal(t, 5, logCount)
 	})
 
 	t.Run("ContextCancellationBeforeStart", func(t *testing.T) {
@@ -93,10 +93,10 @@ func TestRetry(t *testing.T) {
 		fn := func() error {
 			count++
 			if count < 2 {
-				return errors.New("Always fail")
+				return errors.New("fail")
 			}
 			cancel()
-			return errors.New("don't care about this error since we've cancelled retry we will always return context.cancelled")
+			return errors.New("don't care about this error since we've cancelled and there is still another retry")
 		}
 
 		logger := func(_ string, _ ...any) {}
@@ -133,9 +133,9 @@ func TestRetry(t *testing.T) {
 		logger := func(_ string, _ ...any) {}
 
 		err := RetryWithContext(ctx, fn, 4, 1*time.Second, logger)
-		// Function should be called twice, the first time will fail and take one second
-		// the second retry is called which should take two seconds for a total of three seconds
-		// but the function will cancel that timeout before the two seconds are over
+		// Function should be called twice, it will wait one second after the first attempt
+		// and should wait two seconds after the second attempt for a total of three seconds
+		// but the context will cancel that timeout before the two seconds are over
 		require.Equal(t, 2, count)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
