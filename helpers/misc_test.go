@@ -132,10 +132,10 @@ func TestRetry(t *testing.T) {
 
 		logger := func(_ string, _ ...any) {}
 
-		err := RetryWithContext(ctx, fn, 4, 1*time.Second, logger)
-		// Function should be called twice, it will wait one second after the first attempt
-		// and should wait two seconds after the second attempt for a total of three seconds
-		// but the context will cancel that timeout before the two seconds are over
+		err := RetryWithContext(ctx, fn, 3, 1*time.Second, logger)
+		// fn should be called twice, it will wait one second after the first attempt
+		// and tries to wait two seconds after the second attempt
+		// but the context will cancel before the third attempt is called
 		require.Equal(t, 2, count)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
