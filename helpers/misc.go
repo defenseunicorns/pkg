@@ -71,7 +71,7 @@ func RetryWithContext(ctx context.Context, fn func() error, attempts int, delay 
 // - Second attempt: after one second
 // - Third attempt: after two seconds
 func Retry(fn func() error, attempts int, delay time.Duration, logger func(format string, args ...any)) error {
-	return RetryWithContext(context.TODO(), fn, attempts, delay, logger)
+	return RetryWithContext(context.Background(), fn, attempts, delay, logger)
 }
 
 // TransformMapKeys takes a map and transforms its keys using the provided function.
