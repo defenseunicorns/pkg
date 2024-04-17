@@ -21,7 +21,7 @@ func BoolPtr(b bool) *bool {
 
 // RetryWithContext retries a function until it succeeds, the timeout is reached, or the context is done.
 // The delay between attempts increases exponentially as (2^(attempt-1)) * delay.
-// For example, with a delay of one second and three retries, the timing would be:
+// For example, with a delay of one second and three attempts, the timing would be:
 // - First attempt: immediate
 // - Second attempt: after one second
 // - Third attempt: after two seconds
@@ -66,7 +66,7 @@ func RetryWithContext(ctx context.Context, fn func() error, attempts int, delay 
 
 // Retry retries a function until it succeeds, the timeout is reached, or the context is done.
 // The delay between attempts increases exponentially as (2^(attempt-1)) * delay.
-// For example, with a delay of one second and three retries, the timing would be:
+// For example, with a delay of one second and three attempts, the timing would be:
 // - First attempt: immediate
 // - Second attempt: after one second
 // - Third attempt: after two seconds
