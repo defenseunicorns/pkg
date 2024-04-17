@@ -52,13 +52,10 @@ func TestRetry(t *testing.T) {
 	t.Run("RetriesWhenThereAreFailures", func(t *testing.T) {
 		count := 0
 		logCount := 0
-		returnedErr := errors.New("count exceeded")
+		returnedErr := errors.New("always fail")
 		countFn := func() error {
 			count++
-			if count < 4 {
-				return returnedErr
-			}
-			return nil
+			return returnedErr
 		}
 		loggerFn := func(_ string, _ ...any) {
 			logCount++
