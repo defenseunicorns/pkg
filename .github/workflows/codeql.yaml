@@ -35,8 +35,6 @@ jobs:
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@c7f9125735019aa87cfc361530512d50ea439c71 # v3.25.1
-        env:
-          CODEQL_EXTRACTOR_GO_BUILD_TRACING: on
         with:
           languages: go
           config-file: ./.github/codeql.yaml
