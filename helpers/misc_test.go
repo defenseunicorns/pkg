@@ -117,6 +117,20 @@ func TestRetry(t *testing.T) {
 		require.Equal(t, 1, count)
 	})
 
+	t.Run("InvalidAttempts", func(t *testing.T) {
+		count := 0
+		fn := func() error {
+			count++
+			return nil
+		}
+
+		logger := func(_ string, _ ...any) {}
+
+		err := RetryWithContext(context.TODO(), fn, 0, 0, logger)
+		require.Error(t, err)
+		require.Equal(t, 0, count)
+	})
+
 	t.Run("ContextCancellationDeadline", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(2*time.Second))
 		defer cancel()

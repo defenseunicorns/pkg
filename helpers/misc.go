@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"math"
@@ -26,6 +27,9 @@ func BoolPtr(b bool) *bool {
 // - Second attempt: after one second
 // - Third attempt: after two seconds
 func RetryWithContext(ctx context.Context, fn func() error, attempts int, delay time.Duration, logger func(format string, args ...any)) error {
+	if attempts < 1 {
+		return errors.New("invalid number of attempts, must be at least 1")
+	}
 	var err error
 	for r := 0; r < attempts; r++ {
 		select {
