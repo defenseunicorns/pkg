@@ -34,9 +34,7 @@ jobs:
         uses: ./.github/actions/install-tools
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@4355270be187e1b672a7a1c7c7bae5afdc1ab94a # v3.24.10
-        env:
-          CODEQL_EXTRACTOR_GO_BUILD_TRACING: on
+        uses: github/codeql-action/init@c7f9125735019aa87cfc361530512d50ea439c71 # v3.25.1
         with:
           languages: go
           config-file: ./.github/codeql.yaml
@@ -44,6 +42,6 @@ jobs:
       - run: make build
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@4355270be187e1b672a7a1c7c7bae5afdc1ab94a # v3.24.10
+        uses: github/codeql-action/analyze@c7f9125735019aa87cfc361530512d50ea439c71 # v3.25.1
         with:
           category: "/language:go"
