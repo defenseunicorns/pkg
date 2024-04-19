@@ -4,6 +4,8 @@
 package helpers
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"math"
@@ -18,24 +20,62 @@ func BoolPtr(b bool) *bool {
 	return &b
 }
 
-// Retry will retry a function until it succeeds or the timeout is reached. timeout == 2^attempt * delay.
-func Retry(fn func() error, retries int, delay time.Duration, logger func(format string, args ...any)) error {
+// RetryWithContext retries a function until it succeeds, the timeout is reached, or the context is done.
+// The delay between attempts increases exponentially as (2^(attempt-1)) * delay.
+// For example, with a delay of one second and three attempts, the timing would be:
+// - First attempt: immediate
+// - Second attempt: after one second
+// - Third attempt: after two seconds
+func RetryWithContext(ctx context.Context, fn func() error, attempts int, delay time.Duration, logger func(format string, args ...any)) error {
+	if attempts < 1 {
+		return errors.New("invalid number of attempts, must be at least 1")
+	}
 	var err error
-	for r := 0; r < retries; r++ {
-		err = fn()
-		if err == nil {
-			break
+	for r := 0; r < attempts; r++ {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			err = fn()
+			if err == nil {
+				return nil
+			}
+
+			logger("Attempt (%d/%d) failed with: %s", r+1, attempts, err.Error())
+
+			// No reason to wait when we aren't going to retry again
+			if r+1 == attempts {
+				return err
+			}
+
+			pow := math.Pow(2, float64(r))
+			backoff := delay * time.Duration(pow)
+
+			logger("Retrying in %s", backoff)
+
+			timer := time.NewTimer(backoff)
+			select {
+			case <-timer.C:
+			case <-ctx.Done():
+				if !timer.Stop() {
+					<-timer.C
+				}
+				return ctx.Err()
+			}
 		}
-
-		pow := math.Pow(2, float64(r))
-		backoff := delay * time.Duration(pow)
-
-		logger("Retrying (%d/%d) in %s: %s", r+1, retries, backoff, err.Error())
-
-		time.Sleep(backoff)
 	}
 
 	return err
+}
+
+// Retry retries a function until it succeeds, the timeout is reached, or the context is done.
+// The delay between attempts increases exponentially as (2^(attempt-1)) * delay.
+// For example, with a delay of one second and three attempts, the timing would be:
+// - First attempt: immediate
+// - Second attempt: after one second
+// - Third attempt: after two seconds
+func Retry(fn func() error, attempts int, delay time.Duration, logger func(format string, args ...any)) error {
+	return RetryWithContext(context.Background(), fn, attempts, delay, logger)
 }
 
 // TransformMapKeys takes a map and transforms its keys using the provided function.
