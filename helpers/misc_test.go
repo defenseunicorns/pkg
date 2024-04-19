@@ -4,10 +4,12 @@
 package helpers
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -46,33 +48,109 @@ func (suite *TestMiscSuite) SetupSuite() {
 	}
 }
 
-func (suite *TestMiscSuite) TestRetry() {
-	var count int
-	countFn := func() error {
-		count++
-		if count < 4 {
-			return errors.New("count exceeded")
+func TestRetry(t *testing.T) {
+	t.Run("RetriesWhenThereAreFailures", func(t *testing.T) {
+		count := 0
+		logCount := 0
+		returnedErr := errors.New("always fail")
+		countFn := func() error {
+			count++
+			return returnedErr
 		}
-		return nil
-	}
-	var logCount int
-	loggerFn := func(_ string, _ ...any) {
-		logCount++
-	}
+		loggerFn := func(_ string, _ ...any) {
+			logCount++
+		}
 
-	count = 0
-	logCount = 0
-	err := Retry(countFn, 3, 0, loggerFn)
-	suite.Error(err)
-	suite.Equal(3, count)
-	suite.Equal(3, logCount)
+		err := Retry(countFn, 3, 0, loggerFn)
+		require.ErrorIs(t, err, returnedErr)
+		require.Equal(t, 3, count)
+		require.Equal(t, 5, logCount)
+	})
 
-	count = 0
-	logCount = 0
-	err = Retry(countFn, 4, 0, loggerFn)
-	suite.NoError(err)
-	suite.Equal(4, count)
-	suite.Equal(3, logCount)
+	t.Run("ContextCancellationBeforeStart", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		count := 0
+		fn := func() error {
+			count++
+			return errors.New("Never here since context got cancelled")
+		}
+		logger := func(_ string, _ ...any) {}
+
+		waitThatsNotCalled := 1000000 * time.Minute
+		err := RetryWithContext(ctx, fn, 5, waitThatsNotCalled, logger)
+		require.Equal(t, 0, count)
+		require.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("ContextCancellationDuringExecution", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		count := 0
+		fn := func() error {
+			count++
+			if count < 2 {
+				return errors.New("fail")
+			}
+			cancel()
+			return errors.New("don't care about this error since we've cancelled and there is still another retry")
+		}
+
+		logger := func(_ string, _ ...any) {}
+
+		err := RetryWithContext(ctx, fn, 3, 0, logger)
+		require.Equal(t, 2, count)
+		require.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("NoErr", func(t *testing.T) {
+		count := 0
+		fn := func() error {
+			count++
+			return nil
+		}
+
+		logger := func(_ string, _ ...any) {}
+
+		err := RetryWithContext(context.TODO(), fn, 3, 0, logger)
+		require.ErrorIs(t, err, nil)
+		require.Equal(t, 1, count)
+	})
+
+	t.Run("InvalidAttempts", func(t *testing.T) {
+		count := 0
+		fn := func() error {
+			count++
+			return nil
+		}
+
+		logger := func(_ string, _ ...any) {}
+
+		err := RetryWithContext(context.TODO(), fn, 0, 0, logger)
+		require.Error(t, err)
+		require.Equal(t, 0, count)
+	})
+
+	t.Run("ContextCancellationDeadline", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(2*time.Second))
+		defer cancel()
+
+		count := 0
+		fn := func() error {
+			count++
+			return errors.New("Always fail")
+		}
+
+		logger := func(_ string, _ ...any) {}
+
+		err := RetryWithContext(ctx, fn, 3, 1*time.Second, logger)
+		// fn should be called twice, it will wait one second after the first attempt
+		// and tries to wait two seconds after the second attempt
+		// but the context will cancel before the third attempt is called
+		require.Equal(t, 2, count)
+		require.ErrorIs(t, err, context.DeadlineExceeded)
+	})
+
 }
 
 func (suite *TestMiscSuite) TestTransformMapKeys() {
