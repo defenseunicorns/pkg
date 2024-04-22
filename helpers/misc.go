@@ -31,11 +31,13 @@ func RetryWithContext(ctx context.Context, fn func() error, attempts int, delay 
 		return errors.New("invalid number of attempts, must be at least 1")
 	}
 	var err error
+	timer := time.NewTimer(0)
+	defer timer.Stop()
 	for r := 0; r < attempts; r++ {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		default:
+		case <-timer.C:
 			err = fn()
 			if err == nil {
 				return nil
@@ -53,15 +55,7 @@ func RetryWithContext(ctx context.Context, fn func() error, attempts int, delay 
 
 			logger("Retrying in %s", backoff)
 
-			timer := time.NewTimer(backoff)
-			select {
-			case <-timer.C:
-			case <-ctx.Done():
-				if !timer.Stop() {
-					<-timer.C
-				}
-				return ctx.Err()
-			}
+			timer.Reset(backoff)
 		}
 	}
 
