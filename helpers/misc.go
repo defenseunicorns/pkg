@@ -32,6 +32,7 @@ func RetryWithContext(ctx context.Context, fn func() error, attempts int, delay 
 	}
 	var err error
 	timer := time.NewTimer(0)
+	defer timer.Stop()
 	for r := 0; r < attempts; r++ {
 		select {
 		case <-ctx.Done():
