@@ -18,6 +18,11 @@ func (vc *VariableConfig) GetSetVariable(name string) (variable *SetVariable, ok
 	return variable, ok
 }
 
+// GetSetVariables gets the variables set within a VariableConfig
+func (vc *VariableConfig) GetSetVariables() SetVariableMap {
+	return vc.setVariableMap
+}
+
 // PopulateVariables handles setting the active variables within a VariableConfig's SetVariableMap
 func (vc *VariableConfig) PopulateVariables(variables []InteractiveVariable, presetVariables map[string]string) error {
 	for name, value := range presetVariables {
