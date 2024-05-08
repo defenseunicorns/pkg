@@ -35,7 +35,7 @@ func RegisterCmdMutation(cmdKey string, cmdLocation string) {
 }
 
 // MutateCommand performs some basic string mutations to make commands more useful.
-func MutateCommand(cmd string, shellPref Shell) (string, error) {
+func MutateCommand(cmd string, shellPref Shell) string {
 	for cmdKey, cmdLocation := range registeredCmdMutations {
 		cmd = strings.ReplaceAll(cmd, cmdKey, cmdLocation)
 	}
@@ -57,5 +57,5 @@ func MutateCommand(cmd string, shellPref Shell) (string, error) {
 		}
 	}
 
-	return cmd, nil
+	return cmd
 }
