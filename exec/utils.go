@@ -5,9 +5,17 @@
 package exec
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"runtime"
+	"strings"
+
+	"github.com/defenseunicorns/pkg/helpers"
 )
+
+var registeredCmdMutations = map[string]string{}
 
 // GetFinalExecutablePath returns the absolute path to the current executable, following any symlinks along the way.
 func GetFinalExecutablePath() (string, error) {
@@ -19,4 +27,35 @@ func GetFinalExecutablePath() (string, error) {
 	// In case the binary is symlinked somewhere else, get the final destination
 	linkedPath, err := filepath.EvalSymlinks(binaryPath)
 	return linkedPath, err
+}
+
+// RegisterCmdMutation registers local ./ commands that should change to the specified cmdLocation
+func RegisterCmdMutation(cmdKey string, cmdLocation string) {
+	registeredCmdMutations[fmt.Sprintf("./%s ", cmdKey)] = fmt.Sprintf("%s ", cmdLocation)
+}
+
+// MutateCommand performs some basic string mutations to make commands more useful.
+func MutateCommand(cmd string, shellPref Shell) (string, error) {
+	for cmdKey, cmdLocation := range registeredCmdMutations {
+		cmd = strings.ReplaceAll(cmd, cmdKey, cmdLocation)
+	}
+
+	// Make commands 'more' compatible with Windows OS PowerShell
+	if runtime.GOOS == "windows" && (IsPowershell(shellPref.Windows) || shellPref.Windows == "") {
+		// Replace "touch" with "New-Item" on Windows as it's a common command, but not POSIX so not aliased by M$.
+		// See https://mathieubuisson.github.io/powershell-linux-bash/ &
+		// http://web.cs.ucla.edu/~miryung/teaching/EE461L-Spring2012/labs/posix.html for more details.
+		cmd = regexp.MustCompile(`^touch `).ReplaceAllString(cmd, `New-Item `)
+
+		// Convert any ${ENV_*} or $ENV_* to ${Env:ENV_*} or $Env:ENV_* respectively.
+		// https://regex101.com/r/bBDfW2/1
+		envVarRegex := regexp.MustCompile(`(?P<envIndicator>\${?(?P<varName>([^E{]|E[^n]|En[^v]|Env[^:\s])([a-zA-Z0-9_-])+)}?)`)
+		get, err := helpers.MatchRegex(envVarRegex, cmd)
+		if err == nil {
+			newCmd := strings.ReplaceAll(cmd, get("envIndicator"), fmt.Sprintf("$Env:%s", get("varName")))
+			cmd = newCmd
+		}
+	}
+
+	return cmd, nil
 }
