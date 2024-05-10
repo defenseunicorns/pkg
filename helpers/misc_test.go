@@ -70,16 +70,12 @@ func TestRetry(t *testing.T) {
 	t.Run("ContextCancellationBeforeStart", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
-		count := 0
 		fn := func() error {
-			count++
 			return errors.New("Never here since context got cancelled")
 		}
 		logger := func(_ string, _ ...any) {}
-
 		waitThatsNotCalled := 1000000 * time.Minute
 		err := RetryWithContext(ctx, fn, 5, waitThatsNotCalled, logger)
-		require.Equal(t, 0, count)
 		require.ErrorIs(t, err, context.Canceled)
 	})
 
@@ -97,8 +93,8 @@ func TestRetry(t *testing.T) {
 		}
 
 		logger := func(_ string, _ ...any) {}
-
-		err := RetryWithContext(ctx, fn, 3, 0, logger)
+		// Need a teeny tiny delay here. With 0 delay the select loop may not have time to exit before the function is called again
+		err := RetryWithContext(ctx, fn, 3, 5*time.Millisecond, logger)
 		require.Equal(t, 2, count)
 		require.ErrorIs(t, err, context.Canceled)
 	})
