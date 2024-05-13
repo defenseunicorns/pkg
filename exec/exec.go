@@ -14,7 +14,8 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"sync"
+
+	"golang.org/x/sync/errgroup"
 )
 
 // Config is a struct for configuring the Cmd function.
@@ -49,8 +50,6 @@ func CmdWithContext(ctx context.Context, config Config, command string, args ...
 
 	var (
 		stdoutBuf, stderrBuf bytes.Buffer
-		errStdout, errStderr error
-		wg                   sync.WaitGroup
 	)
 
 	stdoutWriters := []io.Writer{
@@ -91,32 +90,26 @@ func CmdWithContext(ctx context.Context, config Config, command string, args ...
 	}
 
 	// Add to waitgroup for each goroutine.
-	wg.Add(2)
+	g := new(errgroup.Group)
 
 	// Run a goroutine to capture the command's stdout live.
-	go func() {
-		_, errStdout = io.Copy(stdout, cmdStdout)
-		wg.Done()
-	}()
+	g.Go(func() error {
+		_, err := io.Copy(stdout, cmdStdout)
+		return err
+	})
 
 	// Run a goroutine to capture the command's stderr live.
-	go func() {
-		_, errStderr = io.Copy(stderr, cmdStderr)
-		wg.Done()
-	}()
+	g.Go(func() error {
+		_, err := io.Copy(stderr, cmdStderr)
+		return err
+	})
 
-	// Wait for the goroutines to finish (if any).
-	wg.Wait()
-
-	// Abort if there was an error capturing the command's outputs.
-	if errStdout != nil {
-		return "", "", fmt.Errorf("failed to capture the stdout command output: %w", errStdout)
-	}
-	if errStderr != nil {
-		return "", "", fmt.Errorf("failed to capture the stderr command output: %w", errStderr)
+	// Wait for the goroutines to finish and abort if there was an error capturing the command's outputs.
+	if err := g.Wait(); err == nil {
+		return "", "", fmt.Errorf("failed to capture the command output: %w", err)
 	}
 
-	// Wait for the command to finish and return the buffered outputs, regardless of whether we printed them.
+	// Return the buffered outputs, regardless of whether we printed them.
 	return stdoutBuf.String(), stderrBuf.String(), cmd.Wait()
 }
 
