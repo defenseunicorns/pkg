@@ -27,20 +27,9 @@ type Config struct {
 	Stderr         io.Writer
 }
 
-// PrintCfg is a helper function for returning a Config struct with Print set to true.
-func PrintCfg() Config {
-	return Config{Print: true}
-}
-
 // Cmd executes a given command with given config.
-func Cmd(command string, args ...string) (string, string, error) {
-	return CmdWithContext(context.TODO(), Config{}, command, args...)
-}
-
-// CmdWithPrint executes a given command with given config and prints the command.
-func CmdWithPrint(command string, args ...string) error {
-	_, _, err := CmdWithContext(context.TODO(), PrintCfg(), command, args...)
-	return err
+func Cmd(config Config, command string, args ...string) (string, string, error) {
+	return CmdWithContext(context.TODO(), config, command, args...)
 }
 
 // CmdWithContext executes a given command with given config.
