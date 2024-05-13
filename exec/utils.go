@@ -25,8 +25,7 @@ func GetFinalExecutablePath() (string, error) {
 	}
 
 	// In case the binary is symlinked somewhere else, get the final destination
-	linkedPath, err := filepath.EvalSymlinks(binaryPath)
-	return linkedPath, err
+	return filepath.EvalSymlinks(binaryPath)
 }
 
 // RegisterCmdMutation registers local ./ commands that should change to the specified cmdLocation
