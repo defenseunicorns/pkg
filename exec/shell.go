@@ -65,7 +65,7 @@ func GetOSShell(shellPref Shell) (string, []string) {
 	return shell, shellArgs
 }
 
-// IsPowershell returns whether a shell name is powershell
-func IsPowershell(shellName string) bool {
+// IsPowerShell returns whether a shell name is PowerShell
+func IsPowerShell(shellName string) bool {
 	return shellName == "powershell" || shellName == "pwsh"
 }
