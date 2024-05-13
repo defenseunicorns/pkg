@@ -2,6 +2,8 @@ module github.com/defenseunicorns/pkg/variables
 
 go 1.21.8
 
+replace github.com/defenseunicorns/pkg/helpers => ../helpers
+
 require github.com/defenseunicorns/pkg/helpers v1.1.1
 
 require (
