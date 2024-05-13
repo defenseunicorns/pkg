@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 
-// Package exec provides a wrapper around the os/exec package
 package exec
 
 import (
@@ -40,7 +39,7 @@ func MutateCommand(cmd string, shellPref Shell) string {
 	}
 
 	// Make commands 'more' compatible with Windows OS PowerShell
-	if runtime.GOOS == "windows" && (IsPowershell(shellPref.Windows) || shellPref.Windows == "") {
+	if runtime.GOOS == "windows" && (IsPowerShell(shellPref.Windows) || shellPref.Windows == "") {
 		// Replace "touch" with "New-Item" on Windows as it's a common command, but not POSIX so not aliased by M$.
 		// See https://mathieubuisson.github.io/powershell-linux-bash/ &
 		// http://web.cs.ucla.edu/~miryung/teaching/EE461L-Spring2012/labs/posix.html for more details.

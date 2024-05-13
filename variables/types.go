@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 
-// Package variables contains functions for interacting with variables
 package variables
 
 // VariableType represents a type of a variable

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 
-// Package exec provides a wrapper around the os/exec package
 package exec
 
 import "runtime"
@@ -31,7 +30,7 @@ func GetOSShell(shellPref Shell) (string, []string) {
 		if shell == "cmd" {
 			// Change shellArgs to /c if cmd is chosen
 			shellArgs = []string{"/c"}
-		} else if !IsPowershell(shell) {
+		} else if !IsPowerShell(shell) {
 			// Change shellArgs to -c if a real shell is chosen
 			shellArgs = shShellArgs
 		}
@@ -42,7 +41,7 @@ func GetOSShell(shellPref Shell) (string, []string) {
 		}
 
 		shellArgs = shShellArgs
-		if IsPowershell(shell) {
+		if IsPowerShell(shell) {
 			// Change shellArgs to -Command if pwsh is chosen
 			shellArgs = powershellShellArgs
 		}
@@ -53,7 +52,7 @@ func GetOSShell(shellPref Shell) (string, []string) {
 		}
 
 		shellArgs = shShellArgs
-		if IsPowershell(shell) {
+		if IsPowerShell(shell) {
 			// Change shellArgs to -Command if pwsh is chosen
 			shellArgs = powershellShellArgs
 		}
