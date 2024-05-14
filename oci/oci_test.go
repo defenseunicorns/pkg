@@ -199,15 +199,15 @@ func (TestProgressWriter) Close() error {
 }
 
 func (TestProgressWriter) Updatef(s string, a ...any) {
-	fmt.Printf(s, a)
+	fmt.Printf(s, a...)
 }
 
 func (TestProgressWriter) Successf(s string, a ...any) {
-	fmt.Printf(s, a)
+	fmt.Printf(s, a...)
 }
 
 func (TestProgressWriter) Failf(s string, a ...any) {
-	fmt.Printf(s, a)
+	fmt.Printf(s, a...)
 }
 
 type TestProgressWriter struct {
