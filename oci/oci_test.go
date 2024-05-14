@@ -194,8 +194,20 @@ func (tpw *TestProgressWriter) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
-func (TestProgressWriter) UpdateTitle(s string) {
-	fmt.Printf("this is the title %s", s)
+func (TestProgressWriter) Close() error {
+	return nil
+}
+
+func (TestProgressWriter) Updatef(s string, a ...any) {
+	fmt.Printf(s, a)
+}
+
+func (TestProgressWriter) Successf(s string, a ...any) {
+	fmt.Printf(s, a)
+}
+
+func (TestProgressWriter) Failf(s string, a ...any) {
+	fmt.Printf(s, a)
 }
 
 type TestProgressWriter struct {
