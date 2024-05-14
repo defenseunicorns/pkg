@@ -11,7 +11,9 @@ func (DiscardProgressWriter) Write(p []byte) (int, error) {
 }
 
 // Close doesn't do anything but satisfy implementation
-func (DiscardProgressWriter) Close() error {}
+func (DiscardProgressWriter) Close() error {
+	return nil
+}
 
 // Updatef doesn't do anything but satisfy implementation
 func (DiscardProgressWriter) Updatef(_ string, _ ...any) {}
