@@ -10,16 +10,28 @@ func (DiscardProgressWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// UpdateTitle doesn't do anything but satisfy implementation
-func (DiscardProgressWriter) UpdateTitle(_ string) {}
+// Updatef doesn't do anything but satisfy implementation
+func (DiscardProgressWriter) Close() {}
+
+// Updatef doesn't do anything but satisfy implementation
+func (DiscardProgressWriter) Updatef(_ string, a ...any) {}
+
+// Successf doesn't do anything but satisfy implementation
+func (DiscardProgressWriter) Successf(_ string, a ...any) {}
+
+// Errorf doesn't do anything but satisfy implementation
+func (DiscardProgressWriter) Errorf(_ string, a ...any) {}
 
 // DiscardProgressWriter is a ProgressWriter in which all calls succeed without doing anything
 // Use this or nil or if you don't care about writing progress
 type DiscardProgressWriter struct{}
 
-// ProgressWriter wraps io.Writer, but also includes an updateTitle function to give the user
+// ProgressWriter wraps io.Writer, but also includes a functions to give the user
 // additional context on what's going on. Useful in OCI for tracking layers
 type ProgressWriter interface {
-	UpdateTitle(string)
+	Updatef(string, ...any)
+	Successf(string, ...any)
+	Errorf(string, ...any)
 	io.Writer
+	io.Closer
 }
