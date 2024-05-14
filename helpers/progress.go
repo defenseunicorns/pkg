@@ -10,17 +10,17 @@ func (DiscardProgressWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// Updatef doesn't do anything but satisfy implementation
+// Close doesn't do anything but satisfy implementation
 func (DiscardProgressWriter) Close() {}
 
 // Updatef doesn't do anything but satisfy implementation
-func (DiscardProgressWriter) Updatef(_ string, a ...any) {}
+func (DiscardProgressWriter) Updatef(_ string, _ ...any) {}
 
 // Successf doesn't do anything but satisfy implementation
-func (DiscardProgressWriter) Successf(_ string, a ...any) {}
+func (DiscardProgressWriter) Successf(_ string, _ ...any) {}
 
 // Errorf doesn't do anything but satisfy implementation
-func (DiscardProgressWriter) Errorf(_ string, a ...any) {}
+func (DiscardProgressWriter) Errorf(_ string, _ ...any) {}
 
 // DiscardProgressWriter is a ProgressWriter in which all calls succeed without doing anything
 // Use this or nil or if you don't care about writing progress
