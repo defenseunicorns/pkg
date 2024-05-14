@@ -206,7 +206,7 @@ func (TestProgressWriter) Successf(s string, a ...any) {
 	fmt.Printf(s, a)
 }
 
-func (TestProgressWriter) Errorf(s string, a ...any) {
+func (TestProgressWriter) Failf(s string, a ...any) {
 	fmt.Printf(s, a)
 }
 

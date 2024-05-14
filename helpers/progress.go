@@ -11,7 +11,7 @@ func (DiscardProgressWriter) Write(p []byte) (int, error) {
 }
 
 // Close doesn't do anything but satisfy implementation
-func (DiscardProgressWriter) Close() {}
+func (DiscardProgressWriter) Close() error {}
 
 // Updatef doesn't do anything but satisfy implementation
 func (DiscardProgressWriter) Updatef(_ string, _ ...any) {}
@@ -19,8 +19,8 @@ func (DiscardProgressWriter) Updatef(_ string, _ ...any) {}
 // Successf doesn't do anything but satisfy implementation
 func (DiscardProgressWriter) Successf(_ string, _ ...any) {}
 
-// Errorf doesn't do anything but satisfy implementation
-func (DiscardProgressWriter) Errorf(_ string, _ ...any) {}
+// Failf doesn't do anything but satisfy implementation
+func (DiscardProgressWriter) Failf(_ string, _ ...any) {}
 
 // DiscardProgressWriter is a ProgressWriter in which all calls succeed without doing anything
 // Use this or nil or if you don't care about writing progress
@@ -31,7 +31,7 @@ type DiscardProgressWriter struct{}
 type ProgressWriter interface {
 	Updatef(string, ...any)
 	Successf(string, ...any)
-	Errorf(string, ...any)
+	Failf(string, ...any)
 	io.Writer
 	io.Closer
 }
