@@ -26,7 +26,7 @@ func (DiscardProgressWriter) Errorf(_ string, _ ...any) {}
 // Use this or nil or if you don't care about writing progress
 type DiscardProgressWriter struct{}
 
-// ProgressWriter wraps io.Writer, but also includes a functions to give the user
+// ProgressWriter wraps io.Writer, but also includes functions to give the user
 // additional context on what's going on. Useful in OCI for tracking layers
 type ProgressWriter interface {
 	Updatef(string, ...any)
