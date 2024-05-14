@@ -105,7 +105,7 @@ func CmdWithContext(ctx context.Context, config Config, command string, args ...
 	})
 
 	// Wait for the goroutines to finish and abort if there was an error capturing the command's outputs.
-	if err := g.Wait(); err == nil {
+	if err := g.Wait(); err != nil {
 		return "", "", fmt.Errorf("failed to capture the command output: %w", err)
 	}
 
