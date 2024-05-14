@@ -12,14 +12,23 @@ type Shell struct {
 	Darwin  string `json:"darwin,omitempty" jsonschema:"description=(default 'sh') Indicates a preference for the shell to use on macOS systems,example=sh,example=bash,example=fish,example=zsh,example=pwsh"`
 }
 
+// IsPowerShell returns whether a shell name is PowerShell
+func IsPowerShell(shellName string) bool {
+	return shellName == "powershell" || shellName == "pwsh"
+}
+
 // GetOSShell returns the shell and shellArgs based on the current OS
 func GetOSShell(shellPref Shell) (string, []string) {
+	return getOSShellForOS(shellPref, runtime.GOOS)
+}
+
+func getOSShellForOS(shellPref Shell, operatingSystem string) (string, []string) {
 	var shell string
 	var shellArgs []string
 	powershellShellArgs := []string{"-Command", "$ErrorActionPreference = 'Stop';"}
 	shShellArgs := []string{"-e", "-c"}
 
-	switch runtime.GOOS {
+	switch operatingSystem {
 	case "windows":
 		shell = "powershell"
 		if shellPref.Windows != "" {
@@ -62,9 +71,4 @@ func GetOSShell(shellPref Shell) (string, []string) {
 	}
 
 	return shell, shellArgs
-}
-
-// IsPowerShell returns whether a shell name is PowerShell
-func IsPowerShell(shellName string) bool {
-	return shellName == "powershell" || shellName == "pwsh"
 }
