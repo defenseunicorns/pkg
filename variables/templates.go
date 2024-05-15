@@ -21,31 +21,6 @@ type TextTemplate struct {
 	Value      string
 }
 
-// GetAllTemplates gets all of the current templates stored in the VariableConfig
-func (vc *VariableConfig) GetAllTemplates() map[string]*TextTemplate {
-	templateMap := vc.applicationTemplates
-
-	for key, variable := range vc.setVariableMap {
-		// Variable keys are always uppercase in the format i.e. ###ZARF_VAR_KEY### or ###UDS_VAR_KEY###
-		templateMap[strings.ToUpper(fmt.Sprintf("###%s_VAR_%s###", vc.templatePrefix, key))] = &TextTemplate{
-			Value:      variable.Value,
-			Sensitive:  variable.Sensitive,
-			AutoIndent: variable.AutoIndent,
-			Type:       variable.Type,
-		}
-	}
-
-	for _, constant := range vc.constants {
-		// Constant keys are always uppercase in the format i.e. ###ZARF_CONST_KEY###
-		templateMap[strings.ToUpper(fmt.Sprintf("###%s_CONST_%s###", vc.templatePrefix, constant.Name))] = &TextTemplate{
-			Value:      constant.Value,
-			AutoIndent: constant.AutoIndent,
-		}
-	}
-
-	return templateMap
-}
-
 // ReplaceTextTemplate loads a file from a given path, replaces text in it and writes it back in place.
 func (vc *VariableConfig) ReplaceTextTemplate(path string) error {
 	templateRegex := fmt.Sprintf("###%s_[A-Z0-9_]+###", strings.ToUpper(vc.templatePrefix))
@@ -135,4 +110,29 @@ func (vc *VariableConfig) ReplaceTextTemplate(path string) error {
 	}
 
 	return os.WriteFile(path, []byte(text), helpers.ReadWriteUser)
+}
+
+// GetAllTemplates gets all of the current templates stored in the VariableConfig
+func (vc *VariableConfig) GetAllTemplates() map[string]*TextTemplate {
+	templateMap := vc.applicationTemplates
+
+	for key, variable := range vc.setVariableMap {
+		// Variable keys are always uppercase in the format i.e. ###ZARF_VAR_KEY### or ###UDS_VAR_KEY###
+		templateMap[strings.ToUpper(fmt.Sprintf("###%s_VAR_%s###", vc.templatePrefix, key))] = &TextTemplate{
+			Value:      variable.Value,
+			Sensitive:  variable.Sensitive,
+			AutoIndent: variable.AutoIndent,
+			Type:       variable.Type,
+		}
+	}
+
+	for _, constant := range vc.constants {
+		// Constant keys are always uppercase in the format i.e. ###ZARF_CONST_KEY###
+		templateMap[strings.ToUpper(fmt.Sprintf("###%s_CONST_%s###", vc.templatePrefix, constant.Name))] = &TextTemplate{
+			Value:      constant.Value,
+			AutoIndent: constant.AutoIndent,
+		}
+	}
+
+	return templateMap
 }
