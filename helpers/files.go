@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2024-Present Defense Unicorns
 
+// Package helpers provides common helper functions for Go.
 package helpers
 
 import (

@@ -34,6 +34,5 @@ type ProgressWriter interface {
 	Updatef(string, ...any)
 	Successf(string, ...any)
 	Failf(string, ...any)
-	io.Writer
-	io.Closer
+	io.WriteCloser
 }
