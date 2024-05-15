@@ -18,7 +18,7 @@ func TestPopulateVariables(t *testing.T) {
 		wantVars SetVariableMap
 	}
 
-	prompt := func(variable InteractiveVariable) (value string, err error) { return "Prompt", nil }
+	prompt := func(_ InteractiveVariable) (value string, err error) { return "Prompt", nil }
 
 	tests := []test{
 		{
