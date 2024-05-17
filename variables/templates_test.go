@@ -6,10 +6,10 @@ package variables
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
-var testPath = "templates.test"
 var start = `
 This is a test file for templating.
 
@@ -83,7 +83,6 @@ func TestReplaceTextTemplate(t *testing.T) {
 					"###PREFIX_APP_REPLACE_ME###": {Value: "APP_REPLACED"},
 				},
 			},
-			path:         testPath,
 			wantErr:      nil,
 			wantContents: simple,
 		},
@@ -98,7 +97,6 @@ func TestReplaceTextTemplate(t *testing.T) {
 					"###PREFIX_APP_REPLACE_ME###": {Value: "APP_REPLACED\nAPP_SECOND"},
 				},
 			},
-			path:         testPath,
 			wantErr:      nil,
 			wantContents: multiline,
 		},
@@ -113,7 +111,6 @@ func TestReplaceTextTemplate(t *testing.T) {
 					"###PREFIX_APP_REPLACE_ME###": {Value: "APP_REPLACED\nAPP_SECOND", AutoIndent: true},
 				},
 			},
-			path:         testPath,
 			wantErr:      nil,
 			wantContents: autoIndent,
 		},
@@ -121,21 +118,26 @@ func TestReplaceTextTemplate(t *testing.T) {
 			vc: VariableConfig{
 				templatePrefix: "PREFIX",
 				setVariableMap: SetVariableMap{
-					"REPLACE_ME": {Value: "file.test", Variable: Variable{Type: FileVariableType}},
+					"REPLACE_ME": {Value: "testdata/file.txt", Variable: Variable{Type: FileVariableType}},
 				},
 				constants: []Constant{{Name: "REPLACE_ME", Value: "CONSTs Don't Support File"}},
 				applicationTemplates: map[string]*TextTemplate{
-					"###PREFIX_APP_REPLACE_ME###": {Value: "file.test", Type: FileVariableType},
+					"###PREFIX_APP_REPLACE_ME###": {Value: "testdata/file.txt", Type: FileVariableType},
 				},
 			},
-			path:         testPath,
 			wantErr:      nil,
 			wantContents: file,
 		},
 	}
 
 	for _, tc := range tests {
-		setTestPathContents()
+		tmpDir := t.TempDir()
+		tc.path = filepath.Join(tmpDir, "templates.test")
+
+		f, _ := os.Create(tc.path)
+		defer f.Close()
+
+		f.WriteString(start)
 
 		gotErr := tc.vc.ReplaceTextTemplate(tc.path)
 		if gotErr != nil && tc.wantErr != nil {
@@ -151,18 +153,5 @@ func TestReplaceTextTemplate(t *testing.T) {
 			}
 		}
 
-		cleanTestPath()
 	}
-}
-
-func setTestPathContents() {
-	f, _ := os.Create(testPath)
-
-	f.WriteString(start)
-
-	f.Close()
-}
-
-func cleanTestPath() {
-	os.Remove(testPath)
 }
