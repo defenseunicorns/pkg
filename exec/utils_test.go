@@ -8,45 +8,6 @@ import (
 	"testing"
 )
 
-func TestRegisterCmdMutation(t *testing.T) {
-	type test struct {
-		cmdKey  string
-		cmdLoc  string
-		wantLoc string
-		wantOk  bool
-		wantErr error
-	}
-
-	tests := []test{
-		{cmdKey: "zarf", cmdLoc: "/usr/local/bin/zarf", wantLoc: "", wantOk: false, wantErr: nil},
-		{cmdKey: "zarf", cmdLoc: "/usr/local/bin/zarf", wantLoc: "/usr/local/bin/zarf", wantOk: true, wantErr: nil},
-		{cmdKey: "uds", cmdLoc: "/usr/local/bin/uds", wantLoc: "", wantOk: false, wantErr: nil},
-		{cmdKey: "uds", cmdLoc: "/usr/local/bin/uds", wantLoc: "/usr/local/bin/uds", wantOk: true, wantErr: nil},
-		{cmdKey: "kubectl", cmdLoc: "/usr/local/bin/kubectl", wantLoc: "", wantOk: false, wantErr: nil},
-		{cmdKey: "kubectl", cmdLoc: "/usr/local/bin/kubectl", wantLoc: "/usr/local/bin/kubectl", wantOk: true, wantErr: nil},
-		{cmdKey: "kitteh", cmdLoc: "/usr/local/bin/kitteh", wantLoc: "", wantOk: false, wantErr: errors.New("kitteh is not a supported command key")},
-	}
-
-	for _, tc := range tests {
-		gotLoc, gotOk := GetCmdMutation(tc.cmdKey)
-		if gotOk != tc.wantOk {
-			t.Fatalf("wanted: %t, got: %t", tc.wantOk, gotOk)
-		}
-		if gotLoc != tc.wantLoc {
-			t.Fatalf("wanted: %s, got: %s", tc.wantLoc, gotLoc)
-		}
-
-		gotErr := RegisterCmdMutation(tc.cmdKey, tc.cmdLoc)
-		if gotErr != nil && tc.wantErr != nil {
-			if gotErr.Error() != tc.wantErr.Error() {
-				t.Fatalf("wanted err: %s, got err: %s", tc.wantErr, gotErr)
-			}
-		} else if gotErr != nil {
-			t.Fatalf("got unexpected err: %s", gotErr)
-		}
-	}
-}
-
 func TestMutateCommand(t *testing.T) {
 	type test struct {
 		cmd  string
@@ -85,6 +46,43 @@ func TestMutateCommand(t *testing.T) {
 		got := mutateCommandForOS(tc.cmd, tc.pref, tc.os)
 		if got != tc.want {
 			t.Fatalf("wanted: %s, got: %s", tc.want, got)
+		}
+	}
+}
+
+func TestRegisterCmdMutation(t *testing.T) {
+	type test struct {
+		cmdKey  string
+		cmdLoc  string
+		wantLoc string
+		wantOk  bool
+		wantErr error
+	}
+
+	tests := []test{
+		{cmdKey: "uds", cmdLoc: "/usr/local/bin/uds", wantLoc: "", wantOk: false, wantErr: nil},
+		{cmdKey: "uds", cmdLoc: "/usr/local/bin/uds", wantLoc: "/usr/local/bin/uds", wantOk: true, wantErr: nil},
+		{cmdKey: "kubectl", cmdLoc: "/usr/local/bin/kubectl", wantLoc: "", wantOk: false, wantErr: nil},
+		{cmdKey: "kubectl", cmdLoc: "/usr/local/bin/kubectl", wantLoc: "/usr/local/bin/kubectl", wantOk: true, wantErr: nil},
+		{cmdKey: "kitteh", cmdLoc: "/usr/local/bin/kitteh", wantLoc: "", wantOk: false, wantErr: errors.New("kitteh is not a supported command key")},
+	}
+
+	for _, tc := range tests {
+		gotLoc, gotOk := GetCmdMutation(tc.cmdKey)
+		if gotOk != tc.wantOk {
+			t.Fatalf("wanted: %t, got: %t", tc.wantOk, gotOk)
+		}
+		if gotLoc != tc.wantLoc {
+			t.Fatalf("wanted: %s, got: %s", tc.wantLoc, gotLoc)
+		}
+
+		gotErr := RegisterCmdMutation(tc.cmdKey, tc.cmdLoc)
+		if gotErr != nil && tc.wantErr != nil {
+			if gotErr.Error() != tc.wantErr.Error() {
+				t.Fatalf("wanted err: %s, got err: %s", tc.wantErr, gotErr)
+			}
+		} else if gotErr != nil {
+			t.Fatalf("got unexpected err: %s", gotErr)
 		}
 	}
 }
