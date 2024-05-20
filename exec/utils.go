@@ -32,6 +32,12 @@ func RegisterCmdMutation(cmdKey string, cmdLocation string) {
 	registeredCmdMutations[fmt.Sprintf("./%s ", cmdKey)] = fmt.Sprintf("%s ", cmdLocation)
 }
 
+// GetCmdMutation returns the cmdLocation for a given cmdKey and whether that key exists
+func GetCmdMutation(cmdKey string) (string, bool) {
+	cmdLocation, ok := registeredCmdMutations[cmdKey]
+	return cmdLocation, ok
+}
+
 // MutateCommand performs some basic string mutations to make commands more useful.
 func MutateCommand(cmd string, shellPref Shell) string {
 	return mutateCommandForOS(cmd, shellPref, runtime.GOOS)
