@@ -4,8 +4,48 @@
 package exec
 
 import (
+	"errors"
 	"testing"
 )
+
+func TestRegisterCmdMutation(t *testing.T) {
+	type test struct {
+		cmdKey  string
+		cmdLoc  string
+		wantLoc string
+		wantOk  bool
+		wantErr error
+	}
+
+	tests := []test{
+		{cmdKey: "zarf", cmdLoc: "/usr/local/bin/zarf", wantLoc: "", wantOk: false, wantErr: nil},
+		{cmdKey: "zarf", cmdLoc: "/usr/local/bin/zarf", wantLoc: "/usr/local/bin/zarf", wantOk: true, wantErr: nil},
+		{cmdKey: "uds", cmdLoc: "/usr/local/bin/uds", wantLoc: "", wantOk: false, wantErr: nil},
+		{cmdKey: "uds", cmdLoc: "/usr/local/bin/uds", wantLoc: "/usr/local/bin/uds", wantOk: true, wantErr: nil},
+		{cmdKey: "kubectl", cmdLoc: "/usr/local/bin/kubectl", wantLoc: "", wantOk: false, wantErr: nil},
+		{cmdKey: "kubectl", cmdLoc: "/usr/local/bin/kubectl", wantLoc: "/usr/local/bin/kubectl", wantOk: true, wantErr: nil},
+		{cmdKey: "kitteh", cmdLoc: "/usr/local/bin/kitteh", wantLoc: "", wantOk: false, wantErr: errors.New("kitteh is not a supported command key")},
+	}
+
+	for _, tc := range tests {
+		gotLoc, gotOk := GetCmdMutation(tc.cmdKey)
+		if gotOk != tc.wantOk {
+			t.Fatalf("wanted: %t, got: %t", tc.wantOk, gotOk)
+		}
+		if gotLoc != tc.wantLoc {
+			t.Fatalf("wanted: %s, got: %s", tc.wantLoc, gotLoc)
+		}
+
+		gotErr := RegisterCmdMutation(tc.cmdKey, tc.cmdLoc)
+		if gotErr != nil && tc.wantErr != nil {
+			if gotErr.Error() != tc.wantErr.Error() {
+				t.Fatalf("wanted err: %s, got err: %s", tc.wantErr, gotErr)
+			}
+		} else if gotErr != nil {
+			t.Fatalf("got unexpected err: %s", gotErr)
+		}
+	}
+}
 
 func TestMutateCommand(t *testing.T) {
 	type test struct {
@@ -22,7 +62,7 @@ func TestMutateCommand(t *testing.T) {
 		{cmd: "echo \"${hello}\"", pref: ShellPreference{}, os: "windows", want: "echo \"$Env:hello\""},
 		{cmd: "echo \"${hello}\"", pref: ShellPreference{Windows: "pwsh"}, os: "windows", want: "echo \"$Env:hello\""},
 		{cmd: "echo \"${hello}\"", pref: ShellPreference{Windows: "cmd"}, os: "windows", want: "echo \"${hello}\""},
-		{cmd: "./zarf version", pref: ShellPreference{}, os: "linux", want: "./zarf version"},
+		{cmd: "./zarf version", pref: ShellPreference{}, os: "linux", want: "zarf version"},
 	}
 
 	// Run tests without registering command mutations
@@ -33,7 +73,8 @@ func TestMutateCommand(t *testing.T) {
 		}
 	}
 
-	RegisterCmdMutation("zarf", "/usr/local/bin/zarf")
+	// Dogsled the error here since we are not explicitly testing this here
+	_ = RegisterCmdMutation("zarf", "/usr/local/bin/zarf")
 
 	tests = []test{
 		{cmd: "./zarf version", pref: ShellPreference{}, os: "linux", want: "/usr/local/bin/zarf version"},

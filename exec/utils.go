@@ -40,15 +40,19 @@ func RegisterCmdMutation(cmdKey string, cmdLocation string) error {
 }
 
 // GetCmdMutation returns the cmdLocation for a given cmdKey and whether that key exists
-func GetCmdMutation(cmdKey string) (string, error) {
-	if slices.Contains(supportedCmdMutations, cmdKey) {
-		cmdLocation, ok := registeredCmdMutations.Load(cmdKey)
-		if !ok {
-			cmdLocation = cmdKey
-		}
-		return cmdLocation.(string), nil
+func GetCmdMutation(cmdKey string) (string, bool) {
+	if !slices.Contains(supportedCmdMutations, cmdKey) {
+		return "", false
 	}
-	return "", fmt.Errorf("%s is not a supported command key", cmdKey)
+
+	cmdValue, ok := registeredCmdMutations.Load(cmdKey)
+	if !ok {
+		return "", false
+	}
+
+	cmdLocation, ok := cmdValue.(string)
+
+	return cmdLocation, ok
 }
 
 // MutateCommand performs some basic string mutations to make commands more useful.
@@ -58,8 +62,11 @@ func MutateCommand(cmd string, shellPref ShellPreference) string {
 
 func mutateCommandForOS(cmd string, shellPref ShellPreference, operatingSystem string) string {
 	for _, cmdKey := range supportedCmdMutations {
-		// We can dogsled the error here since we are ranging specifically over only the supported cmd mutations
-		cmdLocation, _ := GetCmdMutation(cmdKey)
+		// Pull the command location from the map and if it doesn't exist default to $PATH
+		cmdLocation, ok := registeredCmdMutations.Load(cmdKey)
+		if !ok {
+			cmdLocation = cmdKey
+		}
 		cmd = strings.ReplaceAll(cmd, fmt.Sprintf("./%s ", cmdKey), fmt.Sprintf("%s ", cmdLocation))
 	}
 
