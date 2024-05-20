@@ -79,8 +79,8 @@ func CmdWithContext(ctx context.Context, config Config, command string, args ...
 	stdout := io.MultiWriter(stdoutWriters...)
 	stderr := io.MultiWriter(stdErrWriters...)
 
-	// If we're printing, print the command.
-	if config.Print && config.CommandPrinter != nil {
+	// If a CommandPrinter was provided print the command.
+	if config.CommandPrinter != nil {
 		config.CommandPrinter("%s %s", command, strings.Join(args, " "))
 	}
 

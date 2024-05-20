@@ -9,12 +9,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 
 	"github.com/defenseunicorns/pkg/helpers"
 )
 
+var supportedCmdMutations = []string{"zarf", "uds", "kubectl"}
 var registeredCmdMutations = sync.Map{}
 
 // GetFinalExecutablePath returns the absolute path to the current executable, following any symlinks along the way.
@@ -29,14 +31,24 @@ func GetFinalExecutablePath() (string, error) {
 }
 
 // RegisterCmdMutation registers local ./ commands that should change to the specified cmdLocation
-func RegisterCmdMutation(cmdKey string, cmdLocation string) {
-	registeredCmdMutations.Store(fmt.Sprintf("./%s ", cmdKey), fmt.Sprintf("%s ", cmdLocation))
+func RegisterCmdMutation(cmdKey string, cmdLocation string) error {
+	if slices.Contains(supportedCmdMutations, cmdKey) {
+		registeredCmdMutations.Store(cmdKey, cmdLocation)
+		return nil
+	}
+	return fmt.Errorf("%s is not a supported command key", cmdKey)
 }
 
 // GetCmdMutation returns the cmdLocation for a given cmdKey and whether that key exists
-func GetCmdMutation(cmdKey string) (string, bool) {
-	cmdLocation, ok := registeredCmdMutations.Load(cmdKey)
-	return cmdLocation.(string), ok
+func GetCmdMutation(cmdKey string) (string, error) {
+	if slices.Contains(supportedCmdMutations, cmdKey) {
+		cmdLocation, ok := registeredCmdMutations.Load(cmdKey)
+		if !ok {
+			cmdLocation = cmdKey
+		}
+		return cmdLocation.(string), nil
+	}
+	return "", fmt.Errorf("%s is not a supported command key", cmdKey)
 }
 
 // MutateCommand performs some basic string mutations to make commands more useful.
@@ -45,10 +57,11 @@ func MutateCommand(cmd string, shellPref ShellPreference) string {
 }
 
 func mutateCommandForOS(cmd string, shellPref ShellPreference, operatingSystem string) string {
-	registeredCmdMutations.Range(func(cmdKey, cmdLocation any) bool {
-		cmd = strings.ReplaceAll(cmd, cmdKey.(string), cmdLocation.(string))
-		return true
-	})
+	for _, cmdKey := range supportedCmdMutations {
+		// We can dogsled the error here since we are ranging specifically over only the supported cmd mutations
+		cmdLocation, _ := GetCmdMutation(cmdKey)
+		cmd = strings.ReplaceAll(cmd, fmt.Sprintf("./%s ", cmdKey), fmt.Sprintf("%s ", cmdLocation))
+	}
 
 	// Make commands 'more' compatible with Windows OS PowerShell
 	if operatingSystem == "windows" && (IsPowerShell(shellPref.Windows) || shellPref.Windows == "") {
