@@ -2,4 +2,3 @@ go.work
 cover.out
 internal/release/release
 notes.md
-*.test
