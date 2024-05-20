@@ -5,8 +5,8 @@ package exec
 
 import "runtime"
 
-// Shell represents the desired shell to use for a given command
-type Shell struct {
+// ShellPreference represents the desired shell to use for a given command
+type ShellPreference struct {
 	Windows string `json:"windows,omitempty" jsonschema:"description=(default 'powershell') Indicates a preference for the shell to use on Windows systems (note that choosing 'cmd' will turn off migrations like touch -> New-Item),example=powershell,example=cmd,example=pwsh,example=sh,example=bash,example=gsh"`
 	Linux   string `json:"linux,omitempty" jsonschema:"description=(default 'sh') Indicates a preference for the shell to use on Linux systems,example=sh,example=bash,example=fish,example=zsh,example=pwsh"`
 	Darwin  string `json:"darwin,omitempty" jsonschema:"description=(default 'sh') Indicates a preference for the shell to use on macOS systems,example=sh,example=bash,example=fish,example=zsh,example=pwsh"`
@@ -18,11 +18,11 @@ func IsPowerShell(shellName string) bool {
 }
 
 // GetOSShell returns the shell and shellArgs based on the current OS
-func GetOSShell(shellPref Shell) (string, []string) {
+func GetOSShell(shellPref ShellPreference) (string, []string) {
 	return getOSShellForOS(shellPref, runtime.GOOS)
 }
 
-func getOSShellForOS(shellPref Shell, operatingSystem string) (string, []string) {
+func getOSShellForOS(shellPref ShellPreference, operatingSystem string) (string, []string) {
 	var shell string
 	var shellArgs []string
 	powershellShellArgs := []string{"-Command", "$ErrorActionPreference = 'Stop';"}

@@ -9,22 +9,22 @@ import (
 
 func TestGetOSShell(t *testing.T) {
 	type test struct {
-		shell     Shell
+		shell     ShellPreference
 		os        string
 		wantShell string
 		wantArgs  []string
 	}
 
 	tests := []test{
-		{shell: Shell{}, os: "linux", wantShell: "sh", wantArgs: []string{"-e", "-c"}},
-		{shell: Shell{Windows: "pwsh"}, os: "linux", wantShell: "sh", wantArgs: []string{"-e", "-c"}},
-		{shell: Shell{Linux: "pwsh"}, os: "linux", wantShell: "pwsh", wantArgs: []string{"-Command", "$ErrorActionPreference = 'Stop';"}},
-		{shell: Shell{}, os: "darwin", wantShell: "sh", wantArgs: []string{"-e", "-c"}},
-		{shell: Shell{Windows: "pwsh"}, os: "darwin", wantShell: "sh", wantArgs: []string{"-e", "-c"}},
-		{shell: Shell{Darwin: "pwsh"}, os: "darwin", wantShell: "pwsh", wantArgs: []string{"-Command", "$ErrorActionPreference = 'Stop';"}},
-		{shell: Shell{}, os: "windows", wantShell: "powershell", wantArgs: []string{"-Command", "$ErrorActionPreference = 'Stop';"}},
-		{shell: Shell{Linux: "pwsh"}, os: "windows", wantShell: "powershell", wantArgs: []string{"-Command", "$ErrorActionPreference = 'Stop';"}},
-		{shell: Shell{Windows: "cmd"}, os: "windows", wantShell: "cmd", wantArgs: []string{"/c"}},
+		{shell: ShellPreference{}, os: "linux", wantShell: "sh", wantArgs: []string{"-e", "-c"}},
+		{shell: ShellPreference{Windows: "pwsh"}, os: "linux", wantShell: "sh", wantArgs: []string{"-e", "-c"}},
+		{shell: ShellPreference{Linux: "pwsh"}, os: "linux", wantShell: "pwsh", wantArgs: []string{"-Command", "$ErrorActionPreference = 'Stop';"}},
+		{shell: ShellPreference{}, os: "darwin", wantShell: "sh", wantArgs: []string{"-e", "-c"}},
+		{shell: ShellPreference{Windows: "pwsh"}, os: "darwin", wantShell: "sh", wantArgs: []string{"-e", "-c"}},
+		{shell: ShellPreference{Darwin: "pwsh"}, os: "darwin", wantShell: "pwsh", wantArgs: []string{"-Command", "$ErrorActionPreference = 'Stop';"}},
+		{shell: ShellPreference{}, os: "windows", wantShell: "powershell", wantArgs: []string{"-Command", "$ErrorActionPreference = 'Stop';"}},
+		{shell: ShellPreference{Linux: "pwsh"}, os: "windows", wantShell: "powershell", wantArgs: []string{"-Command", "$ErrorActionPreference = 'Stop';"}},
+		{shell: ShellPreference{Windows: "cmd"}, os: "windows", wantShell: "cmd", wantArgs: []string{"/c"}},
 	}
 
 	// Run tests without registering command mutations

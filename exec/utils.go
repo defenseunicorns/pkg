@@ -39,11 +39,11 @@ func GetCmdMutation(cmdKey string) (string, bool) {
 }
 
 // MutateCommand performs some basic string mutations to make commands more useful.
-func MutateCommand(cmd string, shellPref Shell) string {
+func MutateCommand(cmd string, shellPref ShellPreference) string {
 	return mutateCommandForOS(cmd, shellPref, runtime.GOOS)
 }
 
-func mutateCommandForOS(cmd string, shellPref Shell, operatingSystem string) string {
+func mutateCommandForOS(cmd string, shellPref ShellPreference, operatingSystem string) string {
 	for cmdKey, cmdLocation := range registeredCmdMutations {
 		cmd = strings.ReplaceAll(cmd, cmdKey, cmdLocation)
 	}
