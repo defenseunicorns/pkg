@@ -10,11 +10,12 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/defenseunicorns/pkg/helpers"
 )
 
-var registeredCmdMutations = map[string]string{}
+var registeredCmdMutations = sync.Map{}
 
 // GetFinalExecutablePath returns the absolute path to the current executable, following any symlinks along the way.
 func GetFinalExecutablePath() (string, error) {
@@ -29,13 +30,13 @@ func GetFinalExecutablePath() (string, error) {
 
 // RegisterCmdMutation registers local ./ commands that should change to the specified cmdLocation
 func RegisterCmdMutation(cmdKey string, cmdLocation string) {
-	registeredCmdMutations[fmt.Sprintf("./%s ", cmdKey)] = fmt.Sprintf("%s ", cmdLocation)
+	registeredCmdMutations.Store(fmt.Sprintf("./%s ", cmdKey), fmt.Sprintf("%s ", cmdLocation))
 }
 
 // GetCmdMutation returns the cmdLocation for a given cmdKey and whether that key exists
 func GetCmdMutation(cmdKey string) (string, bool) {
-	cmdLocation, ok := registeredCmdMutations[cmdKey]
-	return cmdLocation, ok
+	cmdLocation, ok := registeredCmdMutations.Load(cmdKey)
+	return cmdLocation.(string), ok
 }
 
 // MutateCommand performs some basic string mutations to make commands more useful.
@@ -44,9 +45,10 @@ func MutateCommand(cmd string, shellPref ShellPreference) string {
 }
 
 func mutateCommandForOS(cmd string, shellPref ShellPreference, operatingSystem string) string {
-	for cmdKey, cmdLocation := range registeredCmdMutations {
-		cmd = strings.ReplaceAll(cmd, cmdKey, cmdLocation)
-	}
+	registeredCmdMutations.Range(func(cmdKey, cmdLocation any) bool {
+		cmd = strings.ReplaceAll(cmd, cmdKey.(string), cmdLocation.(string))
+		return true
+	})
 
 	// Make commands 'more' compatible with Windows OS PowerShell
 	if operatingSystem == "windows" && (IsPowerShell(shellPref.Windows) || shellPref.Windows == "") {
