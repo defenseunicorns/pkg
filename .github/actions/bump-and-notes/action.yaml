@@ -28,11 +28,11 @@ runs:
         MODULE: ${{ inputs.module }}
         PR_TITLE: ${{ inputs.pr-title }}
       id: bump-version
-      # We run the go mod check outside echo so as to not swallow the exit code
+      # We run the go mod check twice and outside echo so as to not swallow the exit code / error message
       run: |
         cd internal/release
-        NEW_VERSION=$(go run main.go "$MODULE" "$PR_TITLE")
-        echo "new-version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+        go run main.go "$MODULE" "$PR_TITLE"
+        echo "new-version=$(go run main.go "$MODULE" "$PR_TITLE")" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: install git cliff
@@ -60,11 +60,3 @@ runs:
       with:
         name: release-notes
         path: notes.md
-
-    - name: print error
-      if: ${{ failure() }}
-      env:
-        ERROR: ${{ steps.bump-version.outputs.new-version }}
-      run: |
-        echo $ERROR
-      shell: bash
