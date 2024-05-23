@@ -4,6 +4,9 @@ inputs:
   module:
     description: "The module to be released"
     required: true
+  pr-title:
+    description: "The PR Title that will be merged"
+    default: ""
 
 outputs:
   new-version:
@@ -23,10 +26,12 @@ runs:
     - name: bump module version
       env:
         MODULE: ${{ inputs.module }}
+        PR_TITLE: ${{ inputs.pr-title }}
       id: bump-version
       run: |
         cd internal/release
-        echo "new-version=$(go run main.go "$MODULE")" >> "$GITHUB_OUTPUT"
+        go run main.go "$MODULE" "PR_TITLE" > $NEW_VERSION
+        echo "new-version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: install git cliff
