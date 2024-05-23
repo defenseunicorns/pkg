@@ -28,9 +28,11 @@ runs:
         MODULE: ${{ inputs.module }}
         PR_TITLE: ${{ inputs.pr-title }}
       id: bump-version
+      # We run the go mod check outside echo so as to not swallow the exit code
       run: |
         cd internal/release
-        echo "new-version=$(go run main.go "$MODULE" "$PR_TITLE")" >> "$GITHUB_OUTPUT"
+        NEW_VERSION=$(go run main.go "$MODULE" "$PR_TITLE")
+        echo "new-version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: install git cliff
