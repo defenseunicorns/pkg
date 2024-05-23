@@ -30,8 +30,8 @@ runs:
       id: bump-version
       run: |
         cd internal/release
-        NEW_VERSION=$(go run main.go "$MODULE" "$PR_TITLE")
-        echo "new-version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+        go run main.go "$MODULE" "$PR_TITLE"
+        echo "new-version=$(!!)" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: install git cliff
