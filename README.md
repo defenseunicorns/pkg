@@ -8,9 +8,9 @@
 
 | Module | Import | Description |
 | --- | --- | --- |
-| [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=exec%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/oci) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/exec</pre> | A small wrapper around the `os/exec` package |
+| [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=exec%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/oci) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/exec</pre> | A small wrapper around `os/exec` |
 | [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=helpers%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/helpers) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/helpers/v2</pre> | Common helper functions for Go |
-| [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=oci%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/oci) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/oci</pre> | Opinionated OCI client built opon ORAS |
+| [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=oci%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/oci) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/oci</pre> | Opinionated OCI client built upon ORAS |
 
 ## Contributing
 
