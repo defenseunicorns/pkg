@@ -30,7 +30,7 @@ runs:
       id: bump-version
       run: |
         cd internal/release
-        go run main.go "$MODULE" "PR_TITLE" > $NEW_VERSION
+        go run main.go "$MODULE" "PR_TITLE" > "$NEW_VERSION"
         echo "new-version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
       shell: bash
 
