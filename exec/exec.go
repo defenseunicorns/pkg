@@ -18,7 +18,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// An edit
 // Config is a struct for configuring the Cmd function.
 type Config struct {
 	Print          bool
