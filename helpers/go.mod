@@ -1,4 +1,4 @@
-module github.com/defenseunicorns/pkg/helpers/v3
+module github.com/defenseunicorns/pkg/helpers/v2
 
 go 1.21.8
 

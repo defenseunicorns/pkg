@@ -19,7 +19,6 @@ import (
 	"github.com/otiai10/copy"
 )
 
-// An edit
 const dotCharacter = 46
 
 // CreateDirectory creates a directory for the given path and file mode.
