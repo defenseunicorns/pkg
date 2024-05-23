@@ -70,9 +70,9 @@ func validateModFile(path string, version *semver.Version) error {
 	// Check that the mod version is what we expect
 	expectedMajorVersion := version.Major()
 	if actualMajorVersion == 0 && expectedMajorVersion > 1 {
-		return fmt.Errorf("the module name does not end in `/v%d for a major version > 1", expectedMajorVersion)
+		return fmt.Errorf("the module name does not end in /v%d for a major version > 1", expectedMajorVersion)
 	} else if actualMajorVersion > 1 && actualMajorVersion != expectedMajorVersion {
-		return fmt.Errorf("the expected module version `/v%d does not match /v%d", expectedMajorVersion, actualMajorVersion)
+		return fmt.Errorf("the expected module version /v%d does not match /v%d", expectedMajorVersion, actualMajorVersion)
 	}
 
 	return nil

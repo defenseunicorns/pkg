@@ -30,8 +30,7 @@ runs:
       id: bump-version
       run: |
         cd internal/release
-        go run main.go "$MODULE" "$PR_TITLE"
-        echo "new-version=$(!!)" >> "$GITHUB_OUTPUT"
+        echo "new-version=$(go run main.go "$MODULE" "$PR_TITLE")" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: install git cliff
@@ -59,3 +58,11 @@ runs:
       with:
         name: release-notes
         path: notes.md
+
+    - name: print error
+      if: ${{ failure() }}
+      env:
+        ERROR: ${{ steps.bump-version.outputs.new-version }}
+      run: |
+        echo $ERROR
+      shell: bash
