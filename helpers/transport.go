@@ -93,5 +93,6 @@ func (t *Transport) roundTrip(req *http.Request) (resp *http.Response, err error
 			t.ProgressBar.Write(b)
 		}
 	}
+
 	return resp, err
 }
