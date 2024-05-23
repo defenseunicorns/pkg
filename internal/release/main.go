@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/Masterminds/semver"
@@ -29,29 +30,55 @@ func getProjectPath() (string, error) {
 	return filepath.Dir(filepath.Dir(wd)), nil
 }
 
-func validateModFile(path string) error {
+func validateModFile(path string, version *semver.Version) error {
 	// Ensure the path is consistent with the go mod
 	baseProjectPath, err := getProjectPath()
 	if err != nil {
 		return err
 	}
+
 	modPath := filepath.Join(baseProjectPath, path, "go.mod")
 	bytes, err := os.ReadFile(modPath)
 	if err != nil {
 		return err
 	}
+
 	modFile, err := modfile.Parse(modPath, bytes, nil)
 	if err != nil {
 		return err
 	}
+
+	actualModPath := modFile.Module.Mod.Path
+	var actualMajorVersion int64
+
+	// Strip the /vX from the end of any mod paths
+	actualModPathSections := strings.Split(actualModPath, "/")
+	if len(actualModPathSections) == 5 {
+		actualModPath = strings.Join(actualModPathSections[:4], "/")
+		actualMajorVersion, err = strconv.ParseInt(strings.TrimPrefix(actualModPathSections[4], "v"), 10, 0)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check that the mod path is what we expect
 	expectedModPath := fmt.Sprintf("github.com/defenseunicorns/pkg/%s", path)
-	if expectedModPath != modFile.Module.Mod.Path {
+	if expectedModPath != actualModPath {
 		return fmt.Errorf("the module name is incorrect or a %s does not exist as a module", path)
 	}
+
+	// Check that the mod version is what we expect
+	expectedMajorVersion := version.Major()
+	if actualMajorVersion == 0 && expectedMajorVersion > 1 {
+		return fmt.Errorf("the module name does not end in /v%d for a major version > 1", expectedMajorVersion)
+	} else if actualMajorVersion > 1 && actualMajorVersion != expectedMajorVersion {
+		return fmt.Errorf("the expected module version /v%d does not match /v%d", expectedMajorVersion, actualMajorVersion)
+	}
+
 	return nil
 }
 
-func bumpVersion(module string) (*semver.Version, error) {
+func bumpVersion(module string, prTitle string) (*semver.Version, error) {
 	repoPath, err := getProjectPath()
 	if err != nil {
 		return nil, err
@@ -92,6 +119,11 @@ func bumpVersion(module string) (*semver.Version, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if prTitle != "" {
+		commits = append(commits, prTitle)
+	}
+
 	if len(commits) == 0 {
 		return nil, fmt.Errorf("no commits affecting module %s since last tag", module)
 	}
@@ -222,20 +254,29 @@ func getTypeOfChange(commits []string) string {
 }
 
 func main() {
-	if len(os.Args) != 2 {
+	if len(os.Args) < 2 {
 		panic("this program should be called with the module name. For example, \"go run main.go helpers\"")
 	}
+
+	var prCommitMsg string
+	if len(os.Args) == 3 {
+		prCommitMsg = os.Args[2]
+	}
+
 	module := os.Args[1]
-	err := validateModFile(module)
+
+	newVersion, err := bumpVersion(module, prCommitMsg)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		os.Exit(1)
 	}
-	newVersion, err := bumpVersion(module)
+
+	err = validateModFile(module, newVersion)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		os.Exit(1)
 	}
+
 	fmt.Printf("%s/v%s", module, newVersion.String())
 	os.Exit(0)
 }
