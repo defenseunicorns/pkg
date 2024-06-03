@@ -2,10 +2,10 @@ module github.com/defenseunicorns/pkg/oci
 
 go 1.21.8
 
-replace github.com/defenseunicorns/pkg/helpers => ../helpers
+replace github.com/defenseunicorns/pkg/helpers/v2 => ../helpers
 
 require (
-	github.com/defenseunicorns/pkg/helpers v0.0.1
+	github.com/defenseunicorns/pkg/helpers/v2 v2.0.1
 	github.com/distribution/distribution/v3 v3.0.0-alpha.1
 	github.com/docker/cli v26.0.0+incompatible
 	github.com/goccy/go-yaml v1.11.3
