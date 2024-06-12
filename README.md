@@ -19,7 +19,7 @@ Follow the steps in [CONTRIBUTING.md](./.github/CONTRIBUTING.md) to contribute t
 
 ## Testing, Linting, and Formatting
 
-View the [`Makefile`](Makefile) for available commands.
+View the [`Makefile`](Makefile) for available targets.
 
 ```bash
 # Run all formatters
@@ -32,7 +32,7 @@ make lint
 make test
 ```
 
-To run any of the above commands against an individual module, append `-<module name>` to the command.
+To run any of the above against an individual module, append `-<module name>` to the target.
 
 ```bash
 # Run all formatters for the helpers module
