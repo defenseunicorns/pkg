@@ -1,11 +1,11 @@
-name: Release Exec
+name: Release Kubernetes
 
 on:
   push:
     branches:
       - main
     paths:
-      - "exec/**"
+      - "kubernetes/**"
 
 permissions:
   contents: read
@@ -25,7 +25,7 @@ jobs:
         uses: ./.github/actions/bump-and-notes
         id: bump-version
         with:
-          module: "exec"
+          module: "kubernetes"
 
   release:
     runs-on: ubuntu-latest

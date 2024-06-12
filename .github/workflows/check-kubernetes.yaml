@@ -1,11 +1,11 @@
-name: Check OCI
+name: Check Kubernetes
 
 on:
   pull_request:
     branches: [main]
     types: [opened, edited, synchronize]
     paths:
-      - "oci/**"
+      - "kubernetes/**"
 
 permissions:
   contents: read
@@ -25,5 +25,5 @@ jobs:
         uses: ./.github/actions/bump-and-notes
         id: bump-version
         with:
-          module: "oci"
+          module: "kubernetes"
           pr-title: ${{ github.event.pull_request.title }}
