@@ -70,3 +70,31 @@ func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.O
 	}
 	return nil
 }
+
+// ImmediateWatcher should only be used for testing and returns the set status immediatly.
+type ImmediateWatcher struct {
+	status status.Status
+}
+
+// NewImmediateWatcher returns a ImmediateWatcher.
+func NewImmediateWatcher(status status.Status) *ImmediateWatcher {
+	return &ImmediateWatcher{
+		status: status,
+	}
+}
+
+// Watch watches the given objects and immediatly returns the configured status.
+func (w *ImmediateWatcher) Watch(_ context.Context, objs object.ObjMetadataSet, _ watcher.Options) <-chan event.Event {
+	eventCh := make(chan event.Event, len(objs))
+	for _, obj := range objs {
+		eventCh <- event.Event{
+			Type: event.ResourceUpdateEvent,
+			Resource: &event.ResourceStatus{
+				Identifier: obj,
+				Status:     w.status,
+			},
+		}
+	}
+	close(eventCh)
+	return eventCh
+}
