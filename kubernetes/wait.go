@@ -6,6 +6,7 @@ package kubernetes
 import (
 	"context"
 
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -37,7 +38,20 @@ func WatcherForConfig(cfg *rest.Config) (watcher.StatusWatcher, error) {
 	return sw, nil
 }
 
-// WaitForReady waits for all of the resources to reach a ready state.
+// WaitForReadyRuntime waits for all of the runtime objects to reach a ready state.
+func WaitForReadyRuntime(ctx context.Context, sw watcher.StatusWatcher, robjs []runtime.Object) error {
+	objs := []object.ObjMetadata{}
+	for _, robj := range robjs {
+		obj, err := object.RuntimeToObjMeta(robj)
+		if err != nil {
+			return err
+		}
+		objs = append(objs, obj)
+	}
+	return WaitForReady(ctx, sw, objs)
+}
+
+// WaitForReady waits for all of the objects to reach a ready state.
 func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata) error {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
