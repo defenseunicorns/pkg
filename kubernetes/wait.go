@@ -6,6 +6,7 @@ package kubernetes
 import (
 	"context"
 
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -37,7 +38,20 @@ func WatcherForConfig(cfg *rest.Config) (watcher.StatusWatcher, error) {
 	return sw, nil
 }
 
-// WaitForReady waits for all of the resources to reach a ready state.
+// WaitForReadyRuntime waits for all of the runtime objects to reach a ready state.
+func WaitForReadyRuntime(ctx context.Context, sw watcher.StatusWatcher, robjs []runtime.Object) error {
+	objs := []object.ObjMetadata{}
+	for _, robj := range robjs {
+		obj, err := object.RuntimeToObjMeta(robj)
+		if err != nil {
+			return err
+		}
+		objs = append(objs, obj)
+	}
+	return WaitForReady(ctx, sw, objs)
+}
+
+// WaitForReady waits for all of the objects to reach a ready state.
 func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata) error {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -69,4 +83,32 @@ func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.O
 		return ctx.Err()
 	}
 	return nil
+}
+
+// ImmediateWatcher should only be used for testing and returns the set status immediatly.
+type ImmediateWatcher struct {
+	status status.Status
+}
+
+// NewImmediateWatcher returns a ImmediateWatcher.
+func NewImmediateWatcher(status status.Status) *ImmediateWatcher {
+	return &ImmediateWatcher{
+		status: status,
+	}
+}
+
+// Watch watches the given objects and immediatly returns the configured status.
+func (w *ImmediateWatcher) Watch(_ context.Context, objs object.ObjMetadataSet, _ watcher.Options) <-chan event.Event {
+	eventCh := make(chan event.Event, len(objs))
+	for _, obj := range objs {
+		eventCh <- event.Event{
+			Type: event.ResourceUpdateEvent,
+			Resource: &event.ResourceStatus{
+				Identifier: obj,
+				Status:     w.status,
+			},
+		}
+	}
+	close(eventCh)
+	return eventCh
 }
