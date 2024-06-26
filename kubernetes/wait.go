@@ -53,6 +53,15 @@ func WaitForReadyRuntime(ctx context.Context, sw watcher.StatusWatcher, robjs []
 
 // WaitForReady waits for all of the objects to reach a ready state.
 func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata) error {
+	return waitForStatus(ctx, sw, objs, status.CurrentStatus)
+}
+
+// WaitForDeleted waits for all of the resources to to be deleted.
+func WaitForDeleted(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata) error {
+	return waitForStatus(ctx, sw, objs, status.NotFoundStatus)
+}
+
+func waitForStatus(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata, desired status.Status) error {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -67,7 +76,6 @@ func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.O
 				}
 				rss = append(rss, rs)
 			}
-			desired := status.CurrentStatus
 			if aggregator.AggregateStatus(rss, desired) == desired {
 				cancel()
 				return
