@@ -2,3 +2,4 @@ go.work
 cover.out
 internal/release/release
 notes.md
+.DS_Store
