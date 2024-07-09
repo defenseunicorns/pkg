@@ -39,13 +39,13 @@ jobs:
           fetch-depth: 0
 
       - name: Download Release Notes
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: release-notes
 
       - name: Get pkg app token
         id: pkg-app-token
-        uses: actions/create-github-app-token@ad38cffc07bac6e3857755914c4c88bfd2db4da4 # v1.10.2
+        uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1.10.3
         with:
           app-id: ${{ vars.PKG_WORKFLOW_GITHUB_APP_ID }}
           private-key: ${{ secrets.PKG_WORKFLOW_GITHUB_APP_SECRET }}
