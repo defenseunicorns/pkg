@@ -7,7 +7,7 @@ replace github.com/defenseunicorns/pkg/helpers/v2 => ../helpers
 require (
 	github.com/defenseunicorns/pkg/helpers/v2 v2.0.1
 	github.com/distribution/distribution/v3 v3.0.0-alpha.1
-	github.com/docker/cli v26.0.0+incompatible
+	github.com/docker/cli v27.2.1+incompatible
 	github.com/goccy/go-yaml v1.11.3
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
@@ -25,7 +25,6 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/distribution/reference v0.5.0 // indirect
-	github.com/docker/docker v24.0.9+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.8.0 // indirect
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
