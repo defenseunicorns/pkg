@@ -4,7 +4,9 @@
 package kubernetes
 
 import (
+	"bytes"
 	"context"
+	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +17,8 @@ import (
 )
 
 func TestWaitForReady(t *testing.T) {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	sw := NewImmediateWatcher(status.CurrentStatus)
 	objs := []object.ObjMetadata{
 		{
@@ -26,11 +30,15 @@ func TestWaitForReady(t *testing.T) {
 			Name:      "bar",
 		},
 	}
-	err := WaitForReady(context.Background(), sw, objs)
+	err := WaitForReady(context.Background(), sw, objs, logger)
 	require.NoError(t, err)
+	logOutput := buf.String()
+	require.Contains(t, logOutput, "bar: deployment ready")
 }
 
 func TestWaitForReadyCanceled(t *testing.T) {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	sw := watcher.BlindStatusWatcher{}
@@ -44,6 +52,8 @@ func TestWaitForReadyCanceled(t *testing.T) {
 			Name:      "bar",
 		},
 	}
-	err := WaitForReady(ctx, sw, objs)
+	err := WaitForReady(ctx, sw, objs, logger)
 	require.EqualError(t, err, "context canceled")
+	logOutput := buf.String()
+	require.Contains(t, logOutput, "deployment not ready")
 }

@@ -5,6 +5,9 @@ package kubernetes
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
@@ -46,11 +49,15 @@ func WaitForReadyRuntime(ctx context.Context, sw watcher.StatusWatcher, robjs []
 		}
 		objs = append(objs, obj)
 	}
-	return WaitForReady(ctx, sw, objs)
+	return WaitForReady(ctx, sw, objs, nil)
 }
 
 // WaitForReady waits for all of the objects to reach a ready state.
-func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata) error {
+func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata, logger *slog.Logger) error {
+	// Is this idiomatic
+	if logger == nil {
+		logger = slog.Default()
+	}
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -73,17 +80,31 @@ func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.O
 		}),
 	)
 	<-done
+
+	for _, id := range objs {
+		rs := statusCollector.ResourceStatuses[id]
+		switch rs.Status {
+		// Callers don't currently have true sloggers, so doing this for now
+		case status.CurrentStatus:
+			logger.Debug(fmt.Sprintf("%s: %s ready", rs.Identifier.Name, strings.ToLower(rs.Identifier.GroupKind.Kind)))
+		case status.NotFoundStatus:
+			logger.Error(fmt.Sprintf("%s: %s not found", rs.Identifier.Name, strings.ToLower(rs.Identifier.GroupKind.Kind)))
+		default:
+			logger.Error(fmt.Sprintf("%s: %s not ready", rs.Identifier.Name, strings.ToLower(rs.Identifier.GroupKind.Kind)))
+		}
+	}
+
 	if statusCollector.Error != nil {
 		return statusCollector.Error
 	}
-	// Only check parent context error, otherwise we would error when desired status is acheived.
+	// Only check parent context error, otherwise we would error when desired status is achieved.
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
 	return nil
 }
 
-// ImmediateWatcher should only be used for testing and returns the set status immediatly.
+// ImmediateWatcher should only be used for testing and returns the set status immediately.
 type ImmediateWatcher struct {
 	status status.Status
 }
