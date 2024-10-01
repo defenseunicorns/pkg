@@ -84,7 +84,7 @@ func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.O
 	for _, id := range objs {
 		rs := statusCollector.ResourceStatuses[id]
 		switch rs.Status {
-		// Callers don't currently have true sloggers, so doing this for now
+		// TODO (@austinabro321) once callers have proper slogs change logging here to utilize slog style logger
 		case status.CurrentStatus:
 			logger.Debug(fmt.Sprintf("%s: %s ready", rs.Identifier.Name, strings.ToLower(rs.Identifier.GroupKind.Kind)))
 		case status.NotFoundStatus:
