@@ -55,5 +55,5 @@ func TestWaitForReadyCanceled(t *testing.T) {
 	err := WaitForReady(ctx, sw, objs, logger)
 	require.EqualError(t, err, "context canceled")
 	logOutput := buf.String()
-	require.Contains(t, logOutput, "deployment not ready")
+	require.Contains(t, logOutput, "bar: deployment not ready")
 }
