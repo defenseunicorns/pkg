@@ -146,6 +146,7 @@ func (o *OrasRemote) setRepository(ref registry.Reference) error {
 		Cache:      auth.NewCache(),
 		Credential: credentials.Credential(credStore),
 	}
+	o.log.Debug("gathering credentials from default docker config file", "credentials_configured", credStore.IsAuthConfigured())
 
 	o.repo.Reference = ref
 	o.repo.Client = client
