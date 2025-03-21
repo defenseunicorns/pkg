@@ -11,12 +11,12 @@ import (
 	"strings"
 
 	"github.com/defenseunicorns/pkg/helpers/v2"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
+	"oras.land/oras-go/v2/registry/remote/credentials"
+	"oras.land/oras-go/v2/registry/remote/retry"
 )
 
 const (
@@ -136,56 +136,20 @@ func (o *OrasRemote) setRepository(ref registry.Reference) error {
 		ref.Registry = "ghcr.io"
 		ref.Repository = "defenseunicorns/packages/" + ref.Repository
 	}
-	client, err := o.createAuthClient(ref)
+	storeOpts := credentials.StoreOptions{}
+	credStore, err := credentials.NewStoreFromDocker(storeOpts)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get credentials: %w", err)
 	}
+	client := &auth.Client{
+		Client:     retry.DefaultClient,
+		Cache:      auth.NewCache(),
+		Credential: credentials.Credential(credStore),
+	}
+	o.log.Debug("gathering credentials from default Docker config file", "credentials_configured", credStore.IsAuthConfigured())
 
 	o.repo.Reference = ref
 	o.repo.Client = client
 
 	return nil
-}
-
-// createAuthClient returns an auth client for the given reference.
-//
-// The credentials are pulled using Docker's default credential store.
-//
-// TODO: instead of using Docker's cred store, should use the new one from ORAS to remove that dep
-func (o *OrasRemote) createAuthClient(ref registry.Reference) (*auth.Client, error) {
-
-	client := o.repo.Client.(*auth.Client)
-	o.log.Debug(fmt.Sprintf("Loading docker config file from default config location: %s for %s", config.Dir(), ref))
-	cfg, err := config.Load(config.Dir())
-	if err != nil {
-		return nil, err
-	}
-	if !cfg.ContainsAuth() {
-		o.log.Debug("no docker config file found")
-		return client, nil
-	}
-
-	configs := []*configfile.ConfigFile{cfg}
-
-	var key = ref.Registry
-	if key == "registry-1.docker.io" {
-		// Docker stores its credentials under the following key, otherwise credentials use the registry URL
-		key = "https://index.docker.io/v1/"
-	}
-
-	authConf, err := configs[0].GetCredentialsStore(key).Get(key)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get credentials for %s: %w", key, err)
-	}
-
-	cred := auth.Credential{
-		Username:     authConf.Username,
-		Password:     authConf.Password,
-		AccessToken:  authConf.RegistryToken,
-		RefreshToken: authConf.IdentityToken,
-	}
-
-	client.Credential = auth.StaticCredential(ref.Registry, cred)
-
-	return client, nil
 }
