@@ -81,7 +81,13 @@ func NewOrasRemote(url string, platform ocispec.Platform, mods ...Modifier) (*Or
 		return nil, fmt.Errorf("failed to parse OCI reference %q: %w", url, err)
 	}
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	client := auth.DefaultClient
+	client := &auth.Client{
+		Client: retry.DefaultClient,
+		Header: http.Header{
+			"User-Agent": {"oras-go"},
+		},
+		Cache: auth.DefaultCache,
+	}
 	client.Client.Transport = transport
 	o := &OrasRemote{
 		repo:           &remote.Repository{Client: client},
