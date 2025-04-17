@@ -2,10 +2,10 @@ module github.com/defenseunicorns/pkg/exec
 
 go 1.23.0
 
-replace github.com/defenseunicorns/pkg/helpers => ../helpers
+replace github.com/defenseunicorns/pkg/helpers/v2 => ../helpers
 
 require (
-	github.com/defenseunicorns/pkg/helpers v1.1.3
+	github.com/defenseunicorns/pkg/helpers/v2 v2.0.1
 	golang.org/x/sync v0.13.0
 )
 
