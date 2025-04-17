@@ -36,7 +36,10 @@ jobs:
       - name: ensure readme is up to date
         run: |
           make readme
-          git diff --exit-code README.md
+          if ! git diff --exit-code README.md; then
+            echo "README.md is dirty. Please run 'make readme' and commit the changes"
+            exit 1
+          fi
 
       - name: Run Revive Action by pulling pre-built image
         uses: docker://morphy/revive-action@sha256:087d4e61077087755711ab7e9fae3cc899b7bb07ff8f6a30c3dfb240b1620ae8 #v2.5.7
