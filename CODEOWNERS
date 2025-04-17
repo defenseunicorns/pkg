@@ -1,5 +1,4 @@
-* @Racer159 @Noxsios @jeff-mccoy @lucasrod16 @AustinAbro321
+* @defenseunicorns/pkg-maintainers @defenseunicorns/zarf
 
-# Additional privileged files
-/CODEOWNERS @jeff-mccoy @austenbryan
+/CODEOWNERS @jeff-mccoy @daveworth
 /LICENSE @jeff-mccoy @austenbryan
