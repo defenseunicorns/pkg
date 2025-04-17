@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/defenseunicorns/pkg/helpers"
+	"github.com/defenseunicorns/pkg/helpers/v2"
 )
 
 var supportedCmdMutations = []string{"zarf", "uds", "kubectl"}
