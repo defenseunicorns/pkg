@@ -1,5 +1,6 @@
 go.work
 cover.out
 internal/release/release
+internal/readme/readme
 notes.md
 .DS_Store

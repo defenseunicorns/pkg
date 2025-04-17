@@ -38,3 +38,6 @@ scan-%:
 
 check-go-version-consistency:
 	hack/check_go_version.sh
+
+readme:
+	cd internal/readme; go run main.go
