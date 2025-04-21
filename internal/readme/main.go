@@ -125,8 +125,7 @@ func findModuleInfo(goModPath string) (module, error) {
 func main() {
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting current directory: %v", err)
-		os.Exit(1)
+		fatalf("Error getting current directory: %v", err)
 	}
 
 	repoRoot := filepath.Join(cwd, "..", "..")
@@ -154,21 +153,18 @@ func main() {
 	})
 
 	if walkErr != nil {
-		fmt.Fprintf(os.Stderr, "Error walking directory: %v", walkErr)
-		os.Exit(1)
+		fatalf("Error walking directory: %v", walkErr)
 	}
 
 	templatePath := filepath.Join(cwd, "template.md")
 	templateContent, err := os.ReadFile(templatePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading template file: %v", err)
-		os.Exit(1)
+		fatalf("Error reading template file: %v", err)
 	}
 
 	tmpl, err := template.New("readme").Parse(string(templateContent))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing template: %v", err)
-		os.Exit(1)
+		fatalf("Error parsing template: %v", err)
 	}
 
 	var buf bytes.Buffer
@@ -177,15 +173,18 @@ func main() {
 	}{
 		Modules: modules,
 	}); err != nil {
-		fmt.Fprintf(os.Stderr, "Error executing template: %v", err)
-		os.Exit(1)
+		fatalf("Error executing template: %v", err)
 	}
 
 	readmePath := filepath.Join(repoRoot, "README.md")
 	if err := os.WriteFile(readmePath, buf.Bytes(), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing README.md: %v", err)
-		os.Exit(1)
+		fatalf("Error writing README.md: %v", err)
 	}
 
 	fmt.Printf("Successfully generated README.md at %s\n", readmePath)
+}
+
+func fatalf(format string, a ...any) {
+	fmt.Fprintf(os.Stderr, format, a...)
+	os.Exit(1)
 }
