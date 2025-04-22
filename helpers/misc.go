@@ -33,7 +33,7 @@ func RetryWithContext(ctx context.Context, fn func() error, attempts int, delay 
 	var err error
 	timer := time.NewTimer(0)
 	defer timer.Stop()
-	for r := 0; r < attempts; r++ {
+	for r := range attempts {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -92,17 +92,13 @@ func TransformAndMergeMap[T any](m1, m2 map[string]T, transform func(string) str
 }
 
 // MergeMapRecursive recursively (nestedly) merges map m2 with m1 overwriting common values with m2's values.
-func MergeMapRecursive(m1, m2 map[string]interface{}) (r map[string]interface{}) {
-	r = map[string]interface{}{}
-
-	for key, value := range m1 {
-		r[key] = value
-	}
+func MergeMapRecursive(m1, m2 map[string]any) (r map[string]any) {
+	r = maps.Clone(m1)
 
 	for key, value := range m2 {
-		if value, ok := value.(map[string]interface{}); ok {
+		if value, ok := value.(map[string]any); ok {
 			if nestedValue, ok := r[key]; ok {
-				if nestedValue, ok := nestedValue.(map[string]interface{}); ok {
+				if nestedValue, ok := nestedValue.(map[string]any); ok {
 					r[key] = MergeMapRecursive(nestedValue, value)
 					continue
 				}
@@ -140,11 +136,10 @@ func IsNotZeroAndNotEqual[T any](given T, equal T) bool {
 		return true
 	}
 
-	for i := 0; i < givenValue.NumField(); i++ {
+	for i := range givenValue.NumField() {
 		if !givenValue.Field(i).IsZero() &&
 			givenValue.Field(i).CanInterface() &&
 			givenValue.Field(i).Interface() != equalValue.Field(i).Interface() {
-
 			return true
 		}
 	}
@@ -152,19 +147,31 @@ func IsNotZeroAndNotEqual[T any](given T, equal T) bool {
 }
 
 // MergeNonZero is used to merge non-zero overrides from one struct into another of the same type
-func MergeNonZero[T any](original T, overrides T) T {
-	originalValue := reflect.ValueOf(&original)
-	overridesValue := reflect.ValueOf(&overrides)
+func MergeNonZero[T any](original, overrides T) T {
+	// Create a copy of original that we'll modify
+	result := original
 
-	for i := 0; i < originalValue.Elem().NumField(); i++ {
-		if !overridesValue.Elem().Field(i).IsZero() &&
-			overridesValue.Elem().Field(i).CanSet() {
+	// Get reflect values, using the actual values not pointers to them
+	resultValue := reflect.ValueOf(&result).Elem()
+	overridesValue := reflect.ValueOf(overrides)
 
-			overrideField := overridesValue.Elem().Field(i)
-			originalValue.Elem().Field(i).Set(overrideField)
+	// Ensure we're working with structs
+	if resultValue.Kind() != reflect.Struct || overridesValue.Kind() != reflect.Struct {
+		return original // Can't merge non-structs
+	}
+
+	// Iterate through fields
+	for i := range resultValue.NumField() {
+		resultField := resultValue.Field(i)
+		overrideField := overridesValue.Field(i)
+
+		// Check if override field is non-zero and result field can be set
+		if !overrideField.IsZero() && resultField.CanSet() {
+			resultField.Set(overrideField)
 		}
 	}
-	return originalValue.Elem().Interface().(T)
+
+	return result
 }
 
 // MergePathAndValueIntoMap takes a path in dot notation as a string and a value (also as a string for simplicity),

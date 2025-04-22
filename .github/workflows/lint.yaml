@@ -18,8 +18,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
+  detect-modules:
     runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-modules.outputs.modules }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -27,14 +29,29 @@ jobs:
       - name: Install tools
         uses: ./.github/actions/install-tools
 
-      - name: ensure proper go formatting
-        run: make check-fmt
+      - id: set-modules
+        run: |
+          MODULES_JSON=$(find . -mindepth 2 -maxdepth 4 -type f -name 'go.mod' | cut -c 3- | sed 's|/go.mod$||' | sort -u | jq -R . | jq -c -s . || echo "[\".\"]")
+          echo "modules=$MODULES_JSON" >> $GITHUB_OUTPUT
+          echo "Found modules: $MODULES_JSON"
+
+  lint:
+    needs: detect-modules
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        modules: ${{ fromJSON(needs.detect-modules.outputs.modules) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install tools
+        uses: ./.github/actions/install-tools
 
       - name: ensure all modules are on the same go version
         run: make check-go-version-consistency
 
-      - name: Run Revive Action by pulling pre-built image
-        uses: docker://morphy/revive-action@sha256:087d4e61077087755711ab7e9fae3cc899b7bb07ff8f6a30c3dfb240b1620ae8 #v2.5.7
+      - name: golangci-lint ${{ matrix.modules }}
+        uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd # v7.0.0
         with:
-          config: revive.toml
-          path: "./..."
+          working-directory: ${{ matrix.modules }}

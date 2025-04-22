@@ -8,10 +8,12 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 
-	"github.com/defenseunicorns/pkg/helpers/v2"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
+
+	"github.com/defenseunicorns/pkg/helpers/v2"
 )
 
 // FileDescriptorExists returns true if the given file exists in the given directory with the expected SHA.
@@ -59,11 +61,11 @@ func (o *OrasRemote) CopyToTarget(ctx context.Context, layers []ocispec.Descript
 				return err
 			}
 		}
-		for _, sha := range shas {
-			if sha == desc.Digest.Encoded() {
-				return nil
-			}
+
+		if slices.Contains(shas, desc.Digest.Encoded()) {
+			return nil
 		}
+
 		return oras.SkipNode
 	}
 

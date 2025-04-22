@@ -88,7 +88,7 @@ func FetchYAMLFile[T any](ctx context.Context, fetcher func(ctx context.Context,
 }
 
 // FetchUnmarshal fetches the given descriptor from the remote repository and unmarshals it.
-func FetchUnmarshal[T any](ctx context.Context, fetcher func(ctx context.Context, desc ocispec.Descriptor) (bytes []byte, err error), unmarshaler func(data []byte, v interface{}) error, descriptor ocispec.Descriptor) (result T, err error) {
+func FetchUnmarshal[T any](ctx context.Context, fetcher func(ctx context.Context, desc ocispec.Descriptor) (bytes []byte, err error), unmarshaler func(data []byte, v any) error, descriptor ocispec.Descriptor) (result T, err error) {
 	bytes, err := fetcher(ctx, descriptor)
 	if err != nil {
 		return result, err

@@ -10,13 +10,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/defenseunicorns/pkg/helpers/v2"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 	"oras.land/oras-go/v2/registry/remote/credentials"
 	"oras.land/oras-go/v2/registry/remote/retry"
+
+	"github.com/defenseunicorns/pkg/helpers/v2"
 )
 
 const (
@@ -46,7 +47,14 @@ func WithPlainHTTP(plainHTTP bool) Modifier {
 // WithInsecureSkipVerify sets the insecure TLS flag for the remote
 func WithInsecureSkipVerify(insecure bool) Modifier {
 	return func(o *OrasRemote) {
-		o.progTransport.Base.(*http.Transport).TLSClientConfig.InsecureSkipVerify = insecure
+		transport, ok := o.progTransport.Base.(*http.Transport)
+		if ok {
+			transport.TLSClientConfig.InsecureSkipVerify = insecure
+			return
+		}
+		if o.log != nil {
+			o.log.Warn("unable to set WithInsecureSkipVerify, base transport is not an http.Transport")
+		}
 	}
 }
 
@@ -61,7 +69,14 @@ func PlatformForArch(arch string) ocispec.Platform {
 // WithUserAgent sets the user agent for the remote
 func WithUserAgent(userAgent string) Modifier {
 	return func(o *OrasRemote) {
-		o.repo.Client.(*auth.Client).SetUserAgent(userAgent)
+		client, ok := o.repo.Client.(*auth.Client)
+		if ok {
+			client.SetUserAgent(userAgent)
+			return
+		}
+		if o.log != nil {
+			o.log.Warn("unable to set WithUserAgent, client is not an auth.Client")
+		}
 	}
 }
 
@@ -80,7 +95,11 @@ func NewOrasRemote(url string, platform ocispec.Platform, mods ...Modifier) (*Or
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse OCI reference %q: %w", url, err)
 	}
-	transport := http.DefaultTransport.(*http.Transport).Clone()
+	httpTransport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return nil, fmt.Errorf("http.DefaultTransport is not an *http.Transport, something mutated global net/http variables")
+	}
+	transport := httpTransport.Clone()
 	client := &auth.Client{
 		Client: retry.DefaultClient,
 		Header: http.Header{
@@ -110,13 +129,27 @@ func NewOrasRemote(url string, platform ocispec.Platform, mods ...Modifier) (*Or
 // SetProgressWriter sets the progress writer for the remote
 func (o *OrasRemote) SetProgressWriter(bar helpers.ProgressWriter) {
 	o.progTransport.ProgressBar = bar
-	o.repo.Client.(*auth.Client).Client.Transport = o.progTransport
+	client, ok := o.repo.Client.(*auth.Client)
+	if ok {
+		client.Client.Transport = o.progTransport
+		return
+	}
+	if o.log != nil {
+		o.log.Warn("unable to set progress writer, client is not an auth.Client")
+	}
 }
 
 // ClearProgressWriter clears the progress writer for the remote
 func (o *OrasRemote) ClearProgressWriter() {
 	o.progTransport.ProgressBar = nil
-	o.repo.Client.(*auth.Client).Client.Transport = o.progTransport
+	client, ok := o.repo.Client.(*auth.Client)
+	if ok {
+		client.Client.Transport = o.progTransport
+		return
+	}
+	if o.log != nil {
+		o.log.Warn("unable to clear progress writer, client is not an auth.Client")
+	}
 }
 
 // Repo gives you access to the underlying remote repository

@@ -66,7 +66,7 @@ func createCommit(t *testing.T, r *git.Repository, path string, message string) 
 	require.NoError(t, err)
 
 	randomNumber := rand.Intn(10000000000)
-	_, err = gitFS.Write([]byte(fmt.Sprint(randomNumber)))
+	_, err = fmt.Fprintf(gitFS, "%d", randomNumber)
 	require.NoError(t, err)
 
 	_, err = wt.Add(path)
@@ -103,7 +103,7 @@ func TestCommit(t *testing.T) {
 
 	cm, err := getCommitMessagesFromLastTag(r, version, module)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(cm))
+	require.Len(t, cm, 1)
 	require.Equal(t, commitAfterTag, cm[0])
 }
 
@@ -123,7 +123,7 @@ func TestGetCommitMessagesCanHandleTagNotAffectingModule(t *testing.T) {
 
 	cm, err := getCommitMessagesFromLastTag(r, version, module)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(cm))
+	require.Empty(t, cm)
 }
 
 func TestTagDoesntExist(t *testing.T) {

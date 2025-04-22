@@ -12,24 +12,6 @@ tidy:
 tidy-%:
 	cd $(subst :,/,$*); go mod tidy
 
-fmt:
-	$(MAKE) $(addprefix fmt-, $(MODULES))
-
-fmt-%:
-	cd $(subst :,/,$*); go fmt ./...
-
-check-fmt:
-	$(MAKE) $(addprefix check-fmt-, $(MODULES))
-
-check-fmt-%:
-	cd $(subst :,/,$*); test -z "$$(gofmt -l .)"
-
-vet:
-	$(MAKE) $(addprefix vet-, $(MODULES))
-
-vet-%:
-	cd $(subst :,/,$*); go vet ./... ;\
-
 test:
 	$(MAKE) $(addprefix test-, $(MODULES))
 
@@ -37,7 +19,16 @@ test-%:
 	cd $(subst :,/,$*); go test ./... -coverprofile cover.out ;
 
 lint:
-	revive -config revive.toml ./...
+	$(MAKE) $(addprefix lint-, $(MODULES))
+
+lint-fix:
+	$(MAKE) $(addprefix lint-fix-, $(MODULES))
+
+lint-%:
+	cd $(subst :,/,$*); golangci-lint run ./...
+
+lint-fix-%:
+	cd $(subst :,/,$*); golangci-lint run --fix ./...
 
 scan:
 	$(MAKE) $(addprefix scan-, $(MODULES))

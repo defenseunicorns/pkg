@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/pkg/helpers/v2"
 	"github.com/distribution/distribution/v3/configuration"
 	"github.com/distribution/distribution/v3/registry"
 	_ "github.com/distribution/distribution/v3/registry/storage/driver/inmemory" // used for docker test registry
@@ -23,6 +22,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
+
+	"github.com/defenseunicorns/pkg/helpers/v2"
 )
 
 type OCISuite struct {
@@ -52,6 +53,8 @@ const (
 )
 
 func (suite *OCISuite) setupInMemoryRegistry(ctx context.Context) string {
+	suite.T().Helper()
+
 	port, err := freeport.GetFreePort()
 	suite.NoError(err)
 	config := &configuration.Configuration{}
@@ -59,12 +62,15 @@ func (suite *OCISuite) setupInMemoryRegistry(ctx context.Context) string {
 	config.HTTP.Secret = "Fake secret so we don't get warning"
 	config.Log.AccessLog.Disabled = true
 	config.HTTP.DrainTimeout = 10 * time.Second
-	config.Storage = map[string]configuration.Parameters{"inmemory": map[string]interface{}{}}
+	config.Storage = map[string]configuration.Parameters{"inmemory": map[string]any{}}
 
-	ref, err := registry.NewRegistry(ctx, config)
+	reg, err := registry.NewRegistry(ctx, config)
 	suite.NoError(err)
 
-	go ref.ListenAndServe()
+	go func() {
+		_ = reg.ListenAndServe()
+	}()
+
 	url := fmt.Sprintf("localhost:%d", port)
 
 	return fmt.Sprintf("oci://%s/package:1.0.1", url)
@@ -80,6 +86,7 @@ func (suite *OCISuite) TestPublishFailNoTitle() {
 }
 
 func (suite *OCISuite) publishPackage(src *file.Store, descs []ocispec.Descriptor) {
+	suite.T().Helper()
 	ctx := context.TODO()
 	annotations := map[string]string{
 		ocispec.AnnotationTitle:       "name",
@@ -107,7 +114,8 @@ func (suite *OCISuite) TestCopyToTarget() {
 	ociFileName := "this-file-is-in-a-oci-file-store"
 
 	regularFilePath := filepath.Join(srcTempDir, regularFileName)
-	os.WriteFile(regularFilePath, []byte(fileContents), helpers.ReadWriteUser)
+	err := os.WriteFile(regularFilePath, []byte(fileContents), helpers.ReadWriteUser)
+	suite.NoError(err)
 	src, err := file.New(srcTempDir)
 	suite.NoError(err)
 
@@ -153,14 +161,13 @@ func (suite *OCISuite) TestPulledPaths() {
 	suite.publishPackage(src, descs)
 	dstTempDir := suite.T().TempDir()
 
-	suite.remote.PullPaths(ctx, dstTempDir, files)
+	_, err = suite.remote.PullPaths(ctx, dstTempDir, files)
 	suite.NoError(err)
 	for _, file := range files {
 		pulledPathOCIFile := filepath.Join(dstTempDir, file)
 		_, err := os.Stat(pulledPathOCIFile)
 		suite.NoError(err)
 	}
-
 }
 
 func (suite *OCISuite) TestResolveRoot() {
@@ -174,7 +181,9 @@ func (suite *OCISuite) TestResolveRoot() {
 	suite.NoError(err)
 	for _, file := range files {
 		path := filepath.Join(srcTempDir, file)
-		os.Create(path)
+		f, err := os.Create(path)
+		suite.NoError(err)
+		defer f.Close()
 		desc, err := src.Add(ctx, file, ocispec.MediaTypeEmptyJSON, path)
 		suite.NoError(err)
 		descs = append(descs, desc)
@@ -184,7 +193,7 @@ func (suite *OCISuite) TestResolveRoot() {
 
 	root, err := suite.remote.FetchRoot(ctx)
 	suite.NoError(err)
-	suite.Equal(3, len(root.Layers))
+	suite.Len(root.Layers, 3)
 	desc := root.Locate("ResolveRootFile3")
 	suite.Equal("ResolveRootFile3", desc.Annotations[ocispec.AnnotationTitle])
 }
@@ -227,7 +236,8 @@ func (suite *OCISuite) TestCopy() {
 	suite.NoError(err)
 	for _, file := range files {
 		path := filepath.Join(srcTempDir, file)
-		os.WriteFile(path, []byte(fileContents), helpers.ReadWriteUser)
+		err := os.WriteFile(path, []byte(fileContents), helpers.ReadWriteUser)
+		suite.NoError(err)
 		desc, err := src.Add(ctx, file, ocispec.MediaTypeImageLayer, path)
 		suite.NoError(err)
 		descs = append(descs, desc)

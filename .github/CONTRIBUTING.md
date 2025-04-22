@@ -19,7 +19,6 @@
     ```bash
     make test
     make lint
-    make fmt
     ```
 
 5. Commit your changes.

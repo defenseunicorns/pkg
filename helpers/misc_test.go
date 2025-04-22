@@ -18,8 +18,8 @@ import (
 type TestMiscSuite struct {
 	suite.Suite
 	*require.Assertions
-	map1 map[string]interface{}
-	map2 map[string]interface{}
+	map1 map[string]any
+	map2 map[string]any
 }
 
 type TestMiscStruct struct {
@@ -30,18 +30,18 @@ type TestMiscStruct struct {
 
 func (suite *TestMiscSuite) SetupSuite() {
 	suite.Assertions = require.New(suite.T())
-	suite.map1 = map[string]interface{}{
+	suite.map1 = map[string]any{
 		"hello":  "world",
 		"unique": "value",
-		"nested": map[string]interface{}{
+		"nested": map[string]any{
 			"values": "kitteh",
 			"unique": "value",
 		},
 	}
-	suite.map2 = map[string]interface{}{
+	suite.map2 = map[string]any{
 		"hello":     "it's me",
 		"different": "value",
-		"nested": map[string]interface{}{
+		"nested": map[string]any{
 			"values":    "doggo",
 			"different": "value",
 		},
@@ -109,7 +109,7 @@ func TestRetry(t *testing.T) {
 		logger := func(_ string, _ ...any) {}
 
 		err := RetryWithContext(context.TODO(), fn, 3, 0, logger)
-		require.ErrorIs(t, err, nil)
+		require.NoError(t, err)
 		require.Equal(t, 1, count)
 	})
 
@@ -146,14 +146,13 @@ func TestRetry(t *testing.T) {
 		require.Equal(t, 2, count)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
-
 }
 
 func (suite *TestMiscSuite) TestTransformMapKeys() {
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"HELLO":  "world",
 		"UNIQUE": "value",
-		"NESTED": map[string]interface{}{
+		"NESTED": map[string]any{
 			"values": "kitteh",
 			"unique": "value",
 		},
@@ -164,11 +163,11 @@ func (suite *TestMiscSuite) TestTransformMapKeys() {
 }
 
 func (suite *TestMiscSuite) TestTransformAndMergeMap() {
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"DIFFERENT": "value",
 		"HELLO":     "it's me",
 		"UNIQUE":    "value",
-		"NESTED": map[string]interface{}{
+		"NESTED": map[string]any{
 			"values":    "doggo",
 			"different": "value",
 		},
@@ -179,11 +178,11 @@ func (suite *TestMiscSuite) TestTransformAndMergeMap() {
 }
 
 func (suite *TestMiscSuite) TestMergeMapRecursive() {
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"different": "value",
 		"hello":     "it's me",
 		"unique":    "value",
-		"nested": map[string]interface{}{
+		"nested": map[string]any{
 			"values":    "doggo",
 			"different": "value",
 			"unique":    "value",
@@ -209,51 +208,121 @@ func (suite *TestMiscSuite) TestIsNotZeroAndNotEqual() {
 	}
 
 	result := IsNotZeroAndNotEqual(original, original)
-	suite.Equal(false, result)
+	suite.False(result)
 	result = IsNotZeroAndNotEqual(zero, original)
-	suite.Equal(false, result)
+	suite.False(result)
 	result = IsNotZeroAndNotEqual(equal, original)
-	suite.Equal(false, result)
+	suite.False(result)
 	result = IsNotZeroAndNotEqual(notEqual, original)
-	suite.Equal(true, result)
+	suite.True(result)
 }
 
 func (suite *TestMiscSuite) TestMergeNonZero() {
-	original := TestMiscStruct{
-		Field1: "hello",
-		Field2: 100,
-		field3: "world",
-	}
-	overrides := TestMiscStruct{
-		Field1: "kitteh",
-		Field2: 300,
-		// field 3 is private and shouldn't be set (but also shouldn't panic)
-		field3: "doggo",
+	tests := []struct {
+		name      string
+		original  TestMiscStruct
+		overrides TestMiscStruct
+		expected  TestMiscStruct
+	}{
+		{
+			name: "All public fields overridden, private fields unchanged",
+			original: TestMiscStruct{
+				Field1: "hello",
+				Field2: 100,
+				field3: "world",
+			},
+			overrides: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 300,
+				field3: "doggo", // Private field, shouldn't affect result
+			},
+			expected: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 300,
+				field3: "world", // Private field should remain unchanged
+			},
+		},
+		{
+			name: "Only some fields overridden",
+			original: TestMiscStruct{
+				Field1: "hello",
+				Field2: 100,
+				field3: "world",
+			},
+			overrides: TestMiscStruct{
+				Field1: "kitteh",
+				// Field2 not set (zero value)
+				field3: "doggo", // Private field, shouldn't affect result
+			},
+			expected: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 100, // Should keep original value
+				field3: "world",
+			},
+		},
+		{
+			name: "No fields overridden (all zero values)",
+			original: TestMiscStruct{
+				Field1: "hello",
+				Field2: 100,
+				field3: "world",
+			},
+			overrides: TestMiscStruct{},
+			expected: TestMiscStruct{
+				Field1: "hello",
+				Field2: 100,
+				field3: "world",
+			},
+		},
+		{
+			name:     "Empty original, fields set by overrides",
+			original: TestMiscStruct{},
+			overrides: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 300,
+				field3: "doggo", // Private field, shouldn't affect result
+			},
+			expected: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 300,
+				field3: "", // Private field should remain zero value
+			},
+		},
+		{
+			name: "Zero value overrides empty string field",
+			original: TestMiscStruct{
+				Field1: "",
+				Field2: 100,
+			},
+			overrides: TestMiscStruct{
+				Field1: "new value", // Should override empty string
+				Field2: 0,           // Zero value int, shouldn't override
+			},
+			expected: TestMiscStruct{
+				Field1: "new value",
+				Field2: 100,
+			},
+		},
 	}
 
-	result := MergeNonZero(original, overrides)
-	suite.Equal("kitteh", result.Field1)
-	suite.Equal(300, result.Field2)
-	suite.Equal("world", result.field3)
-
-	withZero := TestMiscStruct{
-		Field1: "kitteh",
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			result := MergeNonZero(tt.original, tt.overrides)
+			suite.Equal(tt.expected.Field1, result.Field1)
+			suite.Equal(tt.expected.Field2, result.Field2)
+			suite.Equal(tt.expected.field3, result.field3)
+		})
 	}
-
-	result = MergeNonZero(original, withZero)
-	suite.Equal("kitteh", result.Field1)
-	suite.Equal(100, result.Field2)
-	suite.Equal("world", result.field3)
 }
 
 func (suite *TestMiscSuite) TestBoolPtr() {
-	suite.Equal(true, *BoolPtr(true))
-	suite.Equal(false, *BoolPtr(false))
+	suite.True(*BoolPtr(true))
+	suite.False(*BoolPtr(false))
 	a := BoolPtr(true)
 	b := BoolPtr(true)
 	// This is a pointer comparison, not a value comparison
-	suite.False(a == b)
-	suite.True(*a == *b)
+	suite.NotSame(a, b)
+	suite.Equal(*a, *b)
 }
 
 func TestMisc(t *testing.T) {
@@ -262,9 +331,9 @@ func TestMisc(t *testing.T) {
 
 func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 	type args struct {
-		m     map[string]interface{}
+		m     map[string]any
 		path  string
-		value interface{}
+		value any
 	}
 	tests := []struct {
 		name    string
@@ -274,7 +343,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 	}{
 		{
 			name:    "nested map creation",
-			args:    args{m: make(map[string]interface{}), path: "a.b.c", value: "hello"},
+			args:    args{m: make(map[string]any), path: "a.b.c", value: "hello"},
 			wantErr: false,
 			want: map[string]any{
 				"a": map[string]any{
@@ -286,7 +355,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 		},
 		{
 			name: "overwrite existing value",
-			args: args{m: map[string]interface{}{"a": map[string]any{"b": map[string]any{"c": "initial"}}},
+			args: args{m: map[string]any{"a": map[string]any{"b": map[string]any{"c": "initial"}}},
 				path: "a.b.c", value: "updated"},
 			wantErr: false,
 			want: map[string]any{
@@ -299,7 +368,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 		},
 		{
 			name:    "deeply nested map creation",
-			args:    args{m: make(map[string]interface{}), path: "a.b.c.d.e.f", value: 42},
+			args:    args{m: make(map[string]any), path: "a.b.c.d.e.f", value: 42},
 			wantErr: false,
 			want: map[string]any{
 				"a": map[string]any{
@@ -317,7 +386,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 		},
 		{
 			name:    "empty path",
-			args:    args{m: make(map[string]interface{}), path: "", value: "root level"},
+			args:    args{m: make(map[string]any), path: "", value: "root level"},
 			wantErr: false,
 			want: map[string]any{
 				"": "root level",
@@ -325,7 +394,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 		},
 		{
 			name:    "root level value",
-			args:    args{m: make(map[string]interface{}), path: "root", value: "root value"},
+			args:    args{m: make(map[string]any), path: "root", value: "root value"},
 			wantErr: false,
 			want: map[string]any{
 				"root": "root value",

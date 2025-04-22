@@ -90,7 +90,7 @@ func (t *Transport) roundTrip(req *http.Request) (resp *http.Response, err error
 		if resp.ContentLength > 0 {
 			contentLength := int(resp.ContentLength)
 			b := make([]byte, contentLength)
-			t.ProgressBar.Write(b)
+			_, _ = t.ProgressBar.Write(b)
 		}
 	}
 
