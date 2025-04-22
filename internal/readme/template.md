@@ -22,7 +22,7 @@ View the [`Makefile`](Makefile) for available targets.
 
 ```bash
 # Run all formatters
-make fmt
+make lint-fix
 
 # Run all linters
 make lint
@@ -35,7 +35,7 @@ To run any of the above against an individual module, append `-<module name>` to
 
 ```bash
 # Run all formatters for the helpers module
-make fmt-helpers
+make lint-fix-helpers
 
 # Run all linters for the helpers module
 make lint-helpers
