@@ -66,7 +66,7 @@ func createCommit(t *testing.T, r *git.Repository, path string, message string) 
 	require.NoError(t, err)
 
 	randomNumber := rand.Intn(10000000000)
-	_, err = gitFS.Write([]byte(fmt.Sprint(randomNumber)))
+	_, err = fmt.Fprintf(gitFS, "%d", randomNumber)
 	require.NoError(t, err)
 
 	_, err = wt.Add(path)
