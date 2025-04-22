@@ -38,7 +38,6 @@ func CreateFile(filepath string) error {
 	}
 
 	return nil
-
 }
 
 // InvalidPath checks if the given path is valid (if it is a permissions error it is there we just don't have access)
@@ -68,7 +67,6 @@ func ListDirectories(directory string) ([]string, error) {
 // If skipHidden is true, hidden directories will be skipped.
 func RecursiveFileList(dir string, pattern *regexp.Regexp, skipHidden bool) (files []string, err error) {
 	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-
 		// Return errors
 		if err != nil {
 			return err
@@ -132,11 +130,7 @@ func ReadFileByChunks(path string, chunkSizeBytes int) (chunks [][]byte, sha256s
 	sha256sum = fmt.Sprintf("%x", sha256.Sum256(file))
 
 	// Loop over the tarball breaking it into chunks based on the payloadChunkSize
-	for {
-		if len(file) == 0 {
-			break
-		}
-
+	for len(file) != 0 {
 		// don't bust slice length
 		if len(file) < chunkSizeBytes {
 			chunkSizeBytes = len(file)

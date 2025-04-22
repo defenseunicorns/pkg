@@ -144,7 +144,6 @@ func IsNotZeroAndNotEqual[T any](given T, equal T) bool {
 		if !givenValue.Field(i).IsZero() &&
 			givenValue.Field(i).CanInterface() &&
 			givenValue.Field(i).Interface() != equalValue.Field(i).Interface() {
-
 			return true
 		}
 	}
@@ -157,9 +156,7 @@ func MergeNonZero[T any](original T, overrides T) T {
 	overridesValue := reflect.ValueOf(&overrides)
 
 	for i := 0; i < originalValue.Elem().NumField(); i++ {
-		if !overridesValue.Elem().Field(i).IsZero() &&
-			overridesValue.Elem().Field(i).CanSet() {
-
+		if !overridesValue.Elem().Field(i).IsZero() && overridesValue.Elem().Field(i).CanSet() {
 			overrideField := overridesValue.Elem().Field(i)
 			originalValue.Elem().Field(i).Set(overrideField)
 		}

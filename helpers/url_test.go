@@ -68,7 +68,6 @@ func (suite *TestURLSuite) Test_1_IsOCIURL() {
 }
 
 func (suite *TestURLSuite) Test_2_DoHostnamesMatch() {
-
 	b, err := DoHostnamesMatch("https://zarf.dev", "https://zarf.dev")
 	suite.NoError(err)
 	suite.True(b)
@@ -123,7 +122,6 @@ func (suite *TestURLSuite) Test_3_ExtractBasePathFromURL() {
 		_, err := ExtractBasePathFromURL(url)
 		suite.Error(err)
 	}
-
 }
 
 func (suite *TestURLSuite) Test_4_IsValidHostname() {
@@ -142,11 +140,11 @@ func (suite *TestURLSuite) Test_4_IsValidHostname() {
 
 	for _, hostname := range goodHostnames {
 		isValid := validHostname(hostname)
-		suite.Equal(isValid, true)
+		suite.True(isValid)
 	}
 	for _, hostname := range badHostnames {
 		isValid := validHostname(hostname)
-		suite.Equal(isValid, false)
+		suite.False(isValid)
 	}
 }
 

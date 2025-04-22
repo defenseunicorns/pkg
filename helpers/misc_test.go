@@ -109,7 +109,7 @@ func TestRetry(t *testing.T) {
 		logger := func(_ string, _ ...any) {}
 
 		err := RetryWithContext(context.TODO(), fn, 3, 0, logger)
-		require.ErrorIs(t, err, nil)
+		require.NoError(t, err)
 		require.Equal(t, 1, count)
 	})
 
@@ -146,7 +146,6 @@ func TestRetry(t *testing.T) {
 		require.Equal(t, 2, count)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
-
 }
 
 func (suite *TestMiscSuite) TestTransformMapKeys() {
@@ -209,13 +208,13 @@ func (suite *TestMiscSuite) TestIsNotZeroAndNotEqual() {
 	}
 
 	result := IsNotZeroAndNotEqual(original, original)
-	suite.Equal(false, result)
+	suite.False(result)
 	result = IsNotZeroAndNotEqual(zero, original)
-	suite.Equal(false, result)
+	suite.False(result)
 	result = IsNotZeroAndNotEqual(equal, original)
-	suite.Equal(false, result)
+	suite.False(result)
 	result = IsNotZeroAndNotEqual(notEqual, original)
-	suite.Equal(true, result)
+	suite.True(result)
 }
 
 func (suite *TestMiscSuite) TestMergeNonZero() {
@@ -247,13 +246,13 @@ func (suite *TestMiscSuite) TestMergeNonZero() {
 }
 
 func (suite *TestMiscSuite) TestBoolPtr() {
-	suite.Equal(true, *BoolPtr(true))
-	suite.Equal(false, *BoolPtr(false))
+	suite.True(*BoolPtr(true))
+	suite.False(*BoolPtr(false))
 	a := BoolPtr(true)
 	b := BoolPtr(true)
 	// This is a pointer comparison, not a value comparison
-	suite.False(a == b)
-	suite.True(*a == *b)
+	suite.NotSame(a, b)
+	suite.Equal(*a, *b)
 }
 
 func TestMisc(t *testing.T) {

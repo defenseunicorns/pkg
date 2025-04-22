@@ -37,7 +37,16 @@ test-%:
 	cd $(subst :,/,$*); go test ./... -coverprofile cover.out ;
 
 lint:
-	revive -config revive.toml ./...
+	$(MAKE) $(addprefix lint-, $(MODULES))
+
+lint-fix:
+	$(MAKE) $(addprefix lint-fix-, $(MODULES))
+
+lint-%:
+	cd $(subst :,/,$*); golangci-lint run ./...
+
+lint-fix-%:
+	cd $(subst :,/,$*); golangci-lint run --fix ./...
 
 scan:
 	$(MAKE) $(addprefix scan-, $(MODULES))
