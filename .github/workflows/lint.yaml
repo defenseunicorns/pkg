@@ -28,7 +28,7 @@ jobs:
         uses: ./.github/actions/install-tools
 
       - id: set-modules
-        run: echo "modules=$(find . -mindepth 2 -maxdepth 4 -type f -name 'go.mod' | cut -c 3- | sed 's|/go.mod$||' | sort -u | jq -R . | jq -s .)" >> $GITHUB_OUTPUT
+        run: echo "modules=$(find . -mindepth 2 -maxdepth 4 -type f -name 'go.mod' | cut -c 3- | sed 's|/go.mod$||' | sort -u | jq -R . | jq -c -s .)" >> $GITHUB_OUTPUT
 
   lint:
     needs: detect-modules
