@@ -142,7 +142,6 @@ func bumpVersion(module string, prTitle string) (*semver.Version, error) {
 }
 
 func getCommitMessagesFromLastTag(r *git.Repository, lastTagVersion *semver.Version, module string) ([]string, error) {
-
 	latestTag := fmt.Sprintf("%s/v%s", module, lastTagVersion.String())
 
 	latestTagRef, err := r.Tag(latestTag)
@@ -206,7 +205,6 @@ func getCommitMessagesFromLastTag(r *git.Repository, lastTagVersion *semver.Vers
 }
 
 func getModuleTags(r *git.Repository, module string) ([]string, error) {
-
 	tagRefs, err := r.Tags()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch tags: %w", err)
@@ -247,7 +245,6 @@ func getTypeOfChange(commits []string) string {
 			} else if commitType == "feat" {
 				category = minor
 			}
-
 		}
 	}
 	return category

@@ -218,31 +218,101 @@ func (suite *TestMiscSuite) TestIsNotZeroAndNotEqual() {
 }
 
 func (suite *TestMiscSuite) TestMergeNonZero() {
-	original := TestMiscStruct{
-		Field1: "hello",
-		Field2: 100,
-		field3: "world",
-	}
-	overrides := TestMiscStruct{
-		Field1: "kitteh",
-		Field2: 300,
-		// field 3 is private and shouldn't be set (but also shouldn't panic)
-		field3: "doggo",
+	tests := []struct {
+		name      string
+		original  TestMiscStruct
+		overrides TestMiscStruct
+		expected  TestMiscStruct
+	}{
+		{
+			name: "All public fields overridden, private fields unchanged",
+			original: TestMiscStruct{
+				Field1: "hello",
+				Field2: 100,
+				field3: "world",
+			},
+			overrides: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 300,
+				field3: "doggo", // Private field, shouldn't affect result
+			},
+			expected: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 300,
+				field3: "world", // Private field should remain unchanged
+			},
+		},
+		{
+			name: "Only some fields overridden",
+			original: TestMiscStruct{
+				Field1: "hello",
+				Field2: 100,
+				field3: "world",
+			},
+			overrides: TestMiscStruct{
+				Field1: "kitteh",
+				// Field2 not set (zero value)
+				field3: "doggo", // Private field, shouldn't affect result
+			},
+			expected: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 100, // Should keep original value
+				field3: "world",
+			},
+		},
+		{
+			name: "No fields overridden (all zero values)",
+			original: TestMiscStruct{
+				Field1: "hello",
+				Field2: 100,
+				field3: "world",
+			},
+			overrides: TestMiscStruct{},
+			expected: TestMiscStruct{
+				Field1: "hello",
+				Field2: 100,
+				field3: "world",
+			},
+		},
+		{
+			name:     "Empty original, fields set by overrides",
+			original: TestMiscStruct{},
+			overrides: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 300,
+				field3: "doggo", // Private field, shouldn't affect result
+			},
+			expected: TestMiscStruct{
+				Field1: "kitteh",
+				Field2: 300,
+				field3: "", // Private field should remain zero value
+			},
+		},
+		{
+			name: "Zero value overrides empty string field",
+			original: TestMiscStruct{
+				Field1: "",
+				Field2: 100,
+			},
+			overrides: TestMiscStruct{
+				Field1: "new value", // Should override empty string
+				Field2: 0,           // Zero value int, shouldn't override
+			},
+			expected: TestMiscStruct{
+				Field1: "new value",
+				Field2: 100,
+			},
+		},
 	}
 
-	result := MergeNonZero(original, overrides)
-	suite.Equal("kitteh", result.Field1)
-	suite.Equal(300, result.Field2)
-	suite.Equal("world", result.field3)
-
-	withZero := TestMiscStruct{
-		Field1: "kitteh",
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			result := MergeNonZero(tt.original, tt.overrides)
+			suite.Equal(tt.expected.Field1, result.Field1)
+			suite.Equal(tt.expected.Field2, result.Field2)
+			suite.Equal(tt.expected.field3, result.field3)
+		})
 	}
-
-	result = MergeNonZero(original, withZero)
-	suite.Equal("kitteh", result.Field1)
-	suite.Equal(100, result.Field2)
-	suite.Equal("world", result.field3)
 }
 
 func (suite *TestMiscSuite) TestBoolPtr() {

@@ -147,17 +147,31 @@ func IsNotZeroAndNotEqual[T any](given T, equal T) bool {
 }
 
 // MergeNonZero is used to merge non-zero overrides from one struct into another of the same type
-func MergeNonZero[T any](original T, overrides T) T {
-	originalValue := reflect.ValueOf(&original)
-	overridesValue := reflect.ValueOf(&overrides)
+func MergeNonZero[T any](original, overrides T) T {
+	// Create a copy of original that we'll modify
+	result := original
 
-	for i := range originalValue.Elem().NumField() {
-		if !overridesValue.Elem().Field(i).IsZero() && overridesValue.Elem().Field(i).CanSet() {
-			overrideField := overridesValue.Elem().Field(i)
-			originalValue.Elem().Field(i).Set(overrideField)
+	// Get reflect values, using the actual values not pointers to them
+	resultValue := reflect.ValueOf(&result).Elem()
+	overridesValue := reflect.ValueOf(overrides)
+
+	// Ensure we're working with structs
+	if resultValue.Kind() != reflect.Struct || overridesValue.Kind() != reflect.Struct {
+		return original // Can't merge non-structs
+	}
+
+	// Iterate through fields
+	for i := range resultValue.NumField() {
+		resultField := resultValue.Field(i)
+		overrideField := overridesValue.Field(i)
+
+		// Check if override field is non-zero and result field can be set
+		if !overrideField.IsZero() && resultField.CanSet() {
+			resultField.Set(overrideField)
 		}
 	}
-	return originalValue.Elem().Interface().(T)
+
+	return result
 }
 
 // MergePathAndValueIntoMap takes a path in dot notation as a string and a value (also as a string for simplicity),

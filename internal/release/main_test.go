@@ -103,7 +103,7 @@ func TestCommit(t *testing.T) {
 
 	cm, err := getCommitMessagesFromLastTag(r, version, module)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(cm))
+	require.Len(t, cm, 1)
 	require.Equal(t, commitAfterTag, cm[0])
 }
 
@@ -123,7 +123,7 @@ func TestGetCommitMessagesCanHandleTagNotAffectingModule(t *testing.T) {
 
 	cm, err := getCommitMessagesFromLastTag(r, version, module)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(cm))
+	require.Empty(t, cm)
 }
 
 func TestTagDoesntExist(t *testing.T) {
