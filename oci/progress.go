@@ -26,10 +26,10 @@ func (o *OrasRemote) printLayer(desc ocispec.Descriptor, suffix string) error {
 	title := desc.Annotations[ocispec.AnnotationTitle]
 	var layerInfo string
 	if title != "" {
-		layerInfo = fmt.Sprintf("%s %s", desc.Digest.Encoded()[:12], helpers.First30last30(title))
+		layerInfo = fmt.Sprintf("%s %s", desc.Digest.Encoded()[:12], helpers.First30Last30(title))
 	} else {
 		layerInfo = fmt.Sprintf("%s [%s]", desc.Digest.Encoded()[:12], desc.MediaType)
 	}
-	o.log.Debug(fmt.Sprintf("%s (%s)", layerInfo, suffix))
+	o.log.Debug("operation successful", "layer", layerInfo, "operation", suffix)
 	return nil
 }
