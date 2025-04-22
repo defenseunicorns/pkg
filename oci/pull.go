@@ -8,6 +8,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/defenseunicorns/pkg/helpers/v2"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -59,11 +60,11 @@ func (o *OrasRemote) CopyToTarget(ctx context.Context, layers []ocispec.Descript
 				return err
 			}
 		}
-		for _, sha := range shas {
-			if sha == desc.Digest.Encoded() {
-				return nil
-			}
+
+		if slices.Contains(shas, desc.Digest.Encoded()) {
+			return nil
 		}
+
 		return oras.SkipNode
 	}
 

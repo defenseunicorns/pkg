@@ -59,7 +59,7 @@ func (suite *OCISuite) setupInMemoryRegistry(ctx context.Context) string {
 	config.HTTP.Secret = "Fake secret so we don't get warning"
 	config.Log.AccessLog.Disabled = true
 	config.HTTP.DrainTimeout = 10 * time.Second
-	config.Storage = map[string]configuration.Parameters{"inmemory": map[string]interface{}{}}
+	config.Storage = map[string]configuration.Parameters{"inmemory": map[string]any{}}
 
 	ref, err := registry.NewRegistry(ctx, config)
 	suite.NoError(err)
