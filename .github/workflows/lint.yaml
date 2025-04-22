@@ -18,8 +18,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
+  detect-modules:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install tools
+        uses: ./.github/actions/install-tools
+
+      - id: set-modules
+        run: echo "modules=$(find . -mindepth 2 -maxdepth 4 -type f -name 'go.mod' | cut -c 3- | sed 's|/go.mod$||' | sort -u | jq -R . | jq -s .)" >> $GITHUB_OUTPUT
+
+  lint:
+    needs: detect-modules
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        modules: ${{ fromJSON(needs.detect-modules.outputs.modules) }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -30,5 +46,7 @@ jobs:
       - name: ensure all modules are on the same go version
         run: make check-go-version-consistency
 
-      - name: golangci-lint
+      - name: golangci-lint ${{ matrix.modules }}
         uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd # v7.0.0
+        with:
+          working-directory: ${{ matrix.modules }}
