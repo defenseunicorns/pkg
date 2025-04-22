@@ -39,9 +39,9 @@ func Copy(ctx context.Context, src *OrasRemote, dst *OrasRemote,
 	for idx, layer := range layers {
 		b, err := json.MarshalIndent(layer, "", "  ")
 		if err != nil {
-			src.log.Debug("failed to marshal json:", "error", err.Error())
+			src.log.Debug("failed to marshal json", "error", err.Error())
 		}
-		src.log.Debug("Copying layer:", "layer", string(b))
+		src.log.Debug("Copying layer", "layer", string(b))
 		if err := sem.Acquire(ctx, 1); err != nil {
 			return err
 		}
