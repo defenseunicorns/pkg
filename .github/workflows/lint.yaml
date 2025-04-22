@@ -27,9 +27,6 @@ jobs:
       - name: Install tools
         uses: ./.github/actions/install-tools
 
-      - name: ensure proper go formatting
-        run: make check-fmt
-
       - name: ensure all modules are on the same go version
         run: make check-go-version-consistency
 

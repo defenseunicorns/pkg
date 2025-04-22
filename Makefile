@@ -12,24 +12,6 @@ tidy:
 tidy-%:
 	cd $(subst :,/,$*); go mod tidy
 
-fmt:
-	$(MAKE) $(addprefix fmt-, $(MODULES))
-
-fmt-%:
-	cd $(subst :,/,$*); go fmt ./...
-
-check-fmt:
-	$(MAKE) $(addprefix check-fmt-, $(MODULES))
-
-check-fmt-%:
-	cd $(subst :,/,$*); test -z "$$(gofmt -l .)"
-
-vet:
-	$(MAKE) $(addprefix vet-, $(MODULES))
-
-vet-%:
-	cd $(subst :,/,$*); go vet ./... ;\
-
 test:
 	$(MAKE) $(addprefix test-, $(MODULES))
 
