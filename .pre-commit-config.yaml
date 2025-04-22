@@ -20,15 +20,8 @@ repos:
 
   - repo: local
     hooks:
-
-      - id: fmt
-        name: go fmt
-        entry: make fmt
-        language: system
-        pass_filenames: false
-
       - id: lint
-        name: go lint
+        name: golangci-lint
         entry: make lint
         language: system
         pass_filenames: false
