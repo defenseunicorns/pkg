@@ -18,8 +18,8 @@ import (
 type TestMiscSuite struct {
 	suite.Suite
 	*require.Assertions
-	map1 map[string]interface{}
-	map2 map[string]interface{}
+	map1 map[string]any
+	map2 map[string]any
 }
 
 type TestMiscStruct struct {
@@ -30,18 +30,18 @@ type TestMiscStruct struct {
 
 func (suite *TestMiscSuite) SetupSuite() {
 	suite.Assertions = require.New(suite.T())
-	suite.map1 = map[string]interface{}{
+	suite.map1 = map[string]any{
 		"hello":  "world",
 		"unique": "value",
-		"nested": map[string]interface{}{
+		"nested": map[string]any{
 			"values": "kitteh",
 			"unique": "value",
 		},
 	}
-	suite.map2 = map[string]interface{}{
+	suite.map2 = map[string]any{
 		"hello":     "it's me",
 		"different": "value",
-		"nested": map[string]interface{}{
+		"nested": map[string]any{
 			"values":    "doggo",
 			"different": "value",
 		},
@@ -149,10 +149,10 @@ func TestRetry(t *testing.T) {
 }
 
 func (suite *TestMiscSuite) TestTransformMapKeys() {
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"HELLO":  "world",
 		"UNIQUE": "value",
-		"NESTED": map[string]interface{}{
+		"NESTED": map[string]any{
 			"values": "kitteh",
 			"unique": "value",
 		},
@@ -163,11 +163,11 @@ func (suite *TestMiscSuite) TestTransformMapKeys() {
 }
 
 func (suite *TestMiscSuite) TestTransformAndMergeMap() {
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"DIFFERENT": "value",
 		"HELLO":     "it's me",
 		"UNIQUE":    "value",
-		"NESTED": map[string]interface{}{
+		"NESTED": map[string]any{
 			"values":    "doggo",
 			"different": "value",
 		},
@@ -178,11 +178,11 @@ func (suite *TestMiscSuite) TestTransformAndMergeMap() {
 }
 
 func (suite *TestMiscSuite) TestMergeMapRecursive() {
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"different": "value",
 		"hello":     "it's me",
 		"unique":    "value",
-		"nested": map[string]interface{}{
+		"nested": map[string]any{
 			"values":    "doggo",
 			"different": "value",
 			"unique":    "value",
@@ -261,9 +261,9 @@ func TestMisc(t *testing.T) {
 
 func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 	type args struct {
-		m     map[string]interface{}
+		m     map[string]any
 		path  string
-		value interface{}
+		value any
 	}
 	tests := []struct {
 		name    string
@@ -273,7 +273,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 	}{
 		{
 			name:    "nested map creation",
-			args:    args{m: make(map[string]interface{}), path: "a.b.c", value: "hello"},
+			args:    args{m: make(map[string]any), path: "a.b.c", value: "hello"},
 			wantErr: false,
 			want: map[string]any{
 				"a": map[string]any{
@@ -285,7 +285,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 		},
 		{
 			name: "overwrite existing value",
-			args: args{m: map[string]interface{}{"a": map[string]any{"b": map[string]any{"c": "initial"}}},
+			args: args{m: map[string]any{"a": map[string]any{"b": map[string]any{"c": "initial"}}},
 				path: "a.b.c", value: "updated"},
 			wantErr: false,
 			want: map[string]any{
@@ -298,7 +298,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 		},
 		{
 			name:    "deeply nested map creation",
-			args:    args{m: make(map[string]interface{}), path: "a.b.c.d.e.f", value: 42},
+			args:    args{m: make(map[string]any), path: "a.b.c.d.e.f", value: 42},
 			wantErr: false,
 			want: map[string]any{
 				"a": map[string]any{
@@ -316,7 +316,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 		},
 		{
 			name:    "empty path",
-			args:    args{m: make(map[string]interface{}), path: "", value: "root level"},
+			args:    args{m: make(map[string]any), path: "", value: "root level"},
 			wantErr: false,
 			want: map[string]any{
 				"": "root level",
@@ -324,7 +324,7 @@ func (suite *TestMiscSuite) TestMergePathAndValueIntoMap() {
 		},
 		{
 			name:    "root level value",
-			args:    args{m: make(map[string]interface{}), path: "root", value: "root value"},
+			args:    args{m: make(map[string]any), path: "root", value: "root value"},
 			wantErr: false,
 			want: map[string]any{
 				"root": "root value",
