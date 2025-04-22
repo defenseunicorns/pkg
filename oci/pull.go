@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/defenseunicorns/pkg/helpers/v2"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
+
+	"github.com/defenseunicorns/pkg/helpers/v2"
 )
 
 // FileDescriptorExists returns true if the given file exists in the given directory with the expected SHA.

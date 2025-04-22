@@ -7,8 +7,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/defenseunicorns/pkg/helpers/v2"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+
+	"github.com/defenseunicorns/pkg/helpers/v2"
 )
 
 // printLayerSkipped prints a debug message when a layer has been successfully skipped.

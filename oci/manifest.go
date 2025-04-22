@@ -7,8 +7,9 @@ import (
 	"encoding/json"
 	"path/filepath"
 
-	"github.com/defenseunicorns/pkg/helpers/v2"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+
+	"github.com/defenseunicorns/pkg/helpers/v2"
 )
 
 // Manifest is a wrapper around the OCI manifest

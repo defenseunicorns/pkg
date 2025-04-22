@@ -64,7 +64,7 @@ func (o *OrasRemote) PackAndTagManifest(ctx context.Context, src *file.Store, de
 		ManifestAnnotations: annotations,
 	}
 
-	root, err := oras.PackManifest(ctx, src, oras.PackManifestVersion1_1_RC4, "", packOpts)
+	root, err := oras.PackManifest(ctx, src, oras.PackManifestVersion1_1, "", packOpts)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
