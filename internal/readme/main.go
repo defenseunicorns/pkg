@@ -40,13 +40,6 @@ func findModuleInfo(goModPath string) (module, error) {
 
 	moduleName := modFile.Module.Mod.Path
 
-	parts := strings.Split(moduleName, "/")
-	name := parts[len(parts)-1]
-
-	if strings.HasSuffix(name, "v0") || strings.HasSuffix(name, "v1") {
-		name = parts[len(parts)-2]
-	}
-
 	moduleDir := filepath.Dir(goModPath)
 	dirName := filepath.Base(moduleDir)
 
