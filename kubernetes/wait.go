@@ -5,6 +5,8 @@ package kubernetes
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
@@ -73,17 +75,32 @@ func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.O
 		}),
 	)
 	<-done
+
 	if statusCollector.Error != nil {
 		return statusCollector.Error
 	}
-	// Only check parent context error, otherwise we would error when desired status is acheived.
+
+	// Only check parent context error, otherwise we would error when desired status is achieved.
 	if ctx.Err() != nil {
-		return ctx.Err()
+		errs := []error{}
+		for _, id := range objs {
+			rs := statusCollector.ResourceStatuses[id]
+			switch rs.Status {
+			case status.CurrentStatus:
+			case status.NotFoundStatus:
+				errs = append(errs, fmt.Errorf("%s: %s not found", rs.Identifier.Name, rs.Identifier.GroupKind.Kind))
+			default:
+				errs = append(errs, fmt.Errorf("%s: %s not ready", rs.Identifier.Name, rs.Identifier.GroupKind.Kind))
+			}
+		}
+		errs = append(errs, ctx.Err())
+		return errors.Join(errs...)
 	}
+
 	return nil
 }
 
-// ImmediateWatcher should only be used for testing and returns the set status immediatly.
+// ImmediateWatcher should only be used for testing and returns the set status immediately.
 type ImmediateWatcher struct {
 	status status.Status
 }
