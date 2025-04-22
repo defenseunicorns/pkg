@@ -5,10 +5,8 @@ package kubernetes
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"io"
-	"log/slog"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
@@ -41,10 +39,7 @@ func WatcherForConfig(cfg *rest.Config) (watcher.StatusWatcher, error) {
 }
 
 // WaitForReadyRuntime waits for all of the runtime objects to reach a ready state.
-func WaitForReadyRuntime(ctx context.Context, sw watcher.StatusWatcher, robjs []runtime.Object, logger *slog.Logger) error {
-	if logger == nil {
-		logger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	}
+func WaitForReadyRuntime(ctx context.Context, sw watcher.StatusWatcher, robjs []runtime.Object) error {
 	objs := []object.ObjMetadata{}
 	for _, robj := range robjs {
 		obj, err := object.RuntimeToObjMeta(robj)
@@ -53,14 +48,11 @@ func WaitForReadyRuntime(ctx context.Context, sw watcher.StatusWatcher, robjs []
 		}
 		objs = append(objs, obj)
 	}
-	return WaitForReady(ctx, sw, objs, logger)
+	return WaitForReady(ctx, sw, objs)
 }
 
 // WaitForReady waits for all of the objects to reach a ready state.
-func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata, logger *slog.Logger) error {
-	if logger == nil {
-		logger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	}
+func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.ObjMetadata) error {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -84,26 +76,27 @@ func WaitForReady(ctx context.Context, sw watcher.StatusWatcher, objs []object.O
 	)
 	<-done
 
-	for _, id := range objs {
-		rs := statusCollector.ResourceStatuses[id]
-		switch rs.Status {
-		// TODO (@austinabro321) once callers have proper sloggers change logging here to use the slog style
-		case status.CurrentStatus:
-			logger.Debug(fmt.Sprintf("%s: %s ready", rs.Identifier.Name, strings.ToLower(rs.Identifier.GroupKind.Kind)))
-		case status.NotFoundStatus:
-			logger.Error(fmt.Sprintf("%s: %s not found", rs.Identifier.Name, strings.ToLower(rs.Identifier.GroupKind.Kind)))
-		default:
-			logger.Error(fmt.Sprintf("%s: %s not ready", rs.Identifier.Name, strings.ToLower(rs.Identifier.GroupKind.Kind)))
-		}
-	}
-
 	if statusCollector.Error != nil {
 		return statusCollector.Error
 	}
+
 	// Only check parent context error, otherwise we would error when desired status is achieved.
 	if ctx.Err() != nil {
-		return ctx.Err()
+		errs := []error{}
+		for _, id := range objs {
+			rs := statusCollector.ResourceStatuses[id]
+			switch rs.Status {
+			case status.CurrentStatus:
+			case status.NotFoundStatus:
+				errs = append(errs, fmt.Errorf("%s: %s not found", rs.Identifier.Name, rs.Identifier.GroupKind.Kind))
+			default:
+				errs = append(errs, fmt.Errorf("%s: %s not ready", rs.Identifier.Name, rs.Identifier.GroupKind.Kind))
+			}
+		}
+		errs = append(errs, ctx.Err())
+		return errors.Join(errs...)
 	}
+
 	return nil
 }
 
