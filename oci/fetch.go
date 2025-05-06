@@ -12,6 +12,8 @@ import (
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content"
 
+	orasCache "github.com/defenseunicorns/pkg/oci/cache"
+
 	goyaml "github.com/goccy/go-yaml"
 )
 
@@ -66,7 +68,12 @@ func (o *OrasRemote) FetchManifest(ctx context.Context, desc ocispec.Descriptor)
 
 // FetchLayer fetches the layer with the given descriptor from the remote repository.
 func (o *OrasRemote) FetchLayer(ctx context.Context, desc ocispec.Descriptor) (bytes []byte, err error) {
-	return content.FetchAll(ctx, o.repo, desc)
+	var src oras.ReadOnlyTarget
+	src = o.repo
+	if o.cache != nil {
+		src = orasCache.New(o.repo, o.cache)
+	}
+	return content.FetchAll(ctx, src, desc)
 }
 
 // FetchJSONFile fetches the given JSON file from the remote repository.

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	"oras.land/oras-go/v2/content/oci"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -28,6 +29,7 @@ const (
 // OrasRemote is a wrapper around the Oras remote repository that includes a progress bar for interactive feedback.
 type OrasRemote struct {
 	repo           *remote.Repository
+	cache          *oci.Store
 	root           *Manifest
 	progTransport  *helpers.Transport
 	targetPlatform *ocispec.Platform
@@ -84,6 +86,13 @@ func WithUserAgent(userAgent string) Modifier {
 func WithLogger(logger *slog.Logger) Modifier {
 	return func(o *OrasRemote) {
 		o.log = logger
+	}
+}
+
+// WithCache sets the cache for the remote
+func WithCache(cache *oci.Store) Modifier {
+	return func(o *OrasRemote) {
+		o.cache = cache
 	}
 }
 
