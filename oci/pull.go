@@ -70,9 +70,9 @@ func (o *OrasRemote) CopyToTarget(ctx context.Context, layers []ocispec.Descript
 
 		return oras.SkipNode
 	}
+
 	var src oras.ReadOnlyTarget
 	src = o.repo
-
 	if o.cache != nil {
 		src = orasCache.New(o.repo, o.cache)
 	}
@@ -81,7 +81,6 @@ func (o *OrasRemote) CopyToTarget(ctx context.Context, layers []ocispec.Descript
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
