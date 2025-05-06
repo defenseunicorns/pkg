@@ -51,7 +51,7 @@ func findModuleInfo(goModPath string) (module, error) {
 
 		if d.IsDir() && path != moduleDir {
 			// Only process files in the root directory of the module
-			if filepath.Dir(path) != moduleDir {
+			if path != moduleDir {
 				return filepath.SkipDir
 			}
 		}

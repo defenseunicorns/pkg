@@ -13,6 +13,8 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
 
+	orasCache "github.com/defenseunicorns/pkg/oci/cache"
+
 	"github.com/defenseunicorns/pkg/helpers/v2"
 )
 
@@ -69,11 +71,16 @@ func (o *OrasRemote) CopyToTarget(ctx context.Context, layers []ocispec.Descript
 		return oras.SkipNode
 	}
 
-	_, err := oras.Copy(ctx, o.repo, o.repo.Reference.String(), target, o.repo.Reference.String(), copyOpts)
+	var src oras.ReadOnlyTarget
+	src = o.repo
+	if o.cache != nil {
+		src = orasCache.New(o.repo, o.cache)
+	}
+
+	_, err := oras.Copy(ctx, src, o.repo.Reference.String(), target, o.repo.Reference.String(), copyOpts)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
