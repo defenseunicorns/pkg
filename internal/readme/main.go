@@ -6,7 +6,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -44,66 +43,66 @@ func findModuleInfo(goModPath string) (module, error) {
 	dirName := filepath.Base(moduleDir)
 
 	description := ""
-	err = filepath.WalkDir(moduleDir, func(path string, d fs.DirEntry, err error) error {
+
+	// Read only files in the root directory of the module
+	entries, err := os.ReadDir(moduleDir)
+	if err != nil {
+		return module{}, fmt.Errorf("failed to read module directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		// Skip directories and non-Go files
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") {
+			continue
+		}
+
+		path := filepath.Join(moduleDir, entry.Name())
+		content, err := os.ReadFile(path)
 		if err != nil {
-			return err
+			continue
 		}
 
-		if d.IsDir() && path != moduleDir {
-			// Only process files in the root directory of the module
-			if filepath.Dir(path) != moduleDir {
-				return filepath.SkipDir
+		lines := strings.Split(string(content), "\n")
+		packageLineIdx := -1
+
+		for i, line := range lines {
+			if strings.HasPrefix(strings.TrimSpace(line), "package ") {
+				packageLineIdx = i
+				break
 			}
 		}
 
-		if !d.IsDir() && strings.HasSuffix(d.Name(), ".go") {
-			content, err := os.ReadFile(path)
-			if err != nil {
-				return nil
-			}
+		if packageLineIdx > 0 {
+			for i := packageLineIdx - 1; i >= 0; i-- {
+				line := strings.TrimSpace(lines[i])
 
-			lines := strings.Split(string(content), "\n")
-			packageLineIdx := -1
-
-			for i, line := range lines {
-				if strings.HasPrefix(strings.TrimSpace(line), "package ") {
-					packageLineIdx = i
-					break
+				if line == "" || strings.HasPrefix(line, "// SPDX-") {
+					continue
 				}
-			}
 
-			if packageLineIdx > 0 {
-				for i := packageLineIdx - 1; i >= 0; i-- {
-					line := strings.TrimSpace(lines[i])
-
-					if line == "" || strings.HasPrefix(line, "// SPDX-") {
-						continue
+				if strings.HasPrefix(line, "// Package ") {
+					fields := strings.Fields(line)
+					if len(fields) < 3 {
+						break
 					}
+					packageName := fields[2]
 
-					if strings.HasPrefix(line, "// Package ") {
-						fields := strings.Fields(line)
-						if len(fields) < 3 {
-							break
-						}
-						packageName := fields[2]
+					pos := strings.Index(line, "// Package ") + len("// Package ") + len(packageName) + 1
 
-						pos := strings.Index(line, "// Package ") + len("// Package ") + len(packageName) + 1
-
-						if pos < len(line) {
-							description = line[pos:]
-							return filepath.SkipAll
-						}
+					if pos < len(line) {
+						description = line[pos:]
+						break
 					}
-
-					break
 				}
+
+				break
 			}
 		}
-		return nil
-	})
 
-	if err != nil && !errors.Is(err, filepath.SkipAll) {
-		return module{}, fmt.Errorf("error scanning module directory: %w", err)
+		// If we found a description, we can stop searching
+		if description != "" {
+			break
+		}
 	}
 
 	module := module{
