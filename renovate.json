@@ -1,11 +1,10 @@
 {
   "enabled": true,
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "forkProcessing": "enabled",
-  "rebaseStalePrs": true,
   "rebaseWhen": "conflicted",
   "commitBodyTable": true,
   "separateMajorMinor": false,
@@ -14,14 +13,17 @@
   ],
   "packageRules": [
     {
-      "matchPackagePatterns": ["*"],
-      "enabled": false
+      "enabled": false,
+      "matchPackageNames": [
+        "*"
+      ]
     }
   ],
-  "regexManagers": [
+  "customManagers": [
     {
-      "fileMatch": [
-        ".github/actions/install-tools/action.yaml"
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/.github/actions/install-tools/action.yaml/"
       ],
       "matchStrings": [
         "# renovate: datasource=github-tags depName=anchore/grype versioning=semver\n\\s*VERSION: (?<currentValue>v[\\d.]+)"
@@ -30,8 +32,9 @@
       "depNameTemplate": "anchore/grype"
     },
     {
-      "fileMatch": [
-        ".github/workflows/release.yaml"
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/.github/workflows/release.yaml/"
       ],
       "matchStrings": [
         "# renovate: datasource=github-tags depName=orhun/git-cliff versioning=semver\n\\s*VERSION: (?<currentValue>[\\d.]+)"
