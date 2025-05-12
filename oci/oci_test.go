@@ -143,7 +143,9 @@ func (suite *OCISuite) TestCopyToTarget() {
 func (suite *OCISuite) TestPulledPaths() {
 	ctx := context.TODO()
 	srcTempDir := suite.T().TempDir()
-	files := []string{"firstFile", "secondFile"}
+	err := helpers.CreateDirectory(filepath.Join(srcTempDir, "subdir"), helpers.ReadExecuteAllWriteUser)
+	suite.NoError(err)
+	files := []string{"firstFile", filepath.Join("subdir", "secondFile")}
 
 	var descs []ocispec.Descriptor
 	src, err := file.New(srcTempDir)
