@@ -6,6 +6,8 @@ package oci
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -86,7 +88,7 @@ func (o *OrasRemote) CopyToTarget(ctx context.Context, layers []ocispec.Descript
 
 // PullPath pulls a layer from the remote repository and saves it to `destinationDir/annotationTitle`.
 func (o *OrasRemote) PullPath(ctx context.Context, destinationDir string, desc ocispec.Descriptor) error {
-	b, err := o.FetchLayer(ctx, desc)
+	vr, err := o.FetchLayerReader(ctx, desc)
 	if err != nil {
 		return err
 	}
@@ -102,7 +104,17 @@ func (o *OrasRemote) PullPath(ctx context.Context, destinationDir string, desc o
 		return err
 	}
 
-	return os.WriteFile(fullPath, b, helpers.ReadWriteUser)
+	file, err := os.Create(fullPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err := io.Copy(file, vr); err != nil {
+		return fmt.Errorf("read failed: %w", err)
+	}
+
+	return vr.Verify()
 }
 
 // PullPaths pulls multiple files from the remote repository and saves them to `destinationDir`.
