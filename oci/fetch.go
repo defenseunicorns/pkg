@@ -76,6 +76,20 @@ func (o *OrasRemote) FetchLayer(ctx context.Context, desc ocispec.Descriptor) (b
 	return content.FetchAll(ctx, src, desc)
 }
 
+// FetchLayerReader fetches the layer with the given descriptor from the remote repository.
+func (o *OrasRemote) FetchLayerReader(ctx context.Context, desc ocispec.Descriptor) (*content.VerifyReader, error) {
+	var src oras.ReadOnlyTarget
+	src = o.repo
+	if o.cache != nil {
+		src = orasCache.New(o.repo, o.cache)
+	}
+	r, err := src.Fetch(ctx, desc)
+	if err != nil {
+		return nil, err
+	}
+	return content.NewVerifyReader(r, desc), nil
+}
+
 // FetchJSONFile fetches the given JSON file from the remote repository.
 func FetchJSONFile[T any](ctx context.Context, fetcher func(ctx context.Context, desc ocispec.Descriptor) (bytes []byte, err error), manifest *Manifest, path string) (result T, err error) {
 	descriptor := manifest.Locate(path)
