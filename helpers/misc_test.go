@@ -178,19 +178,26 @@ func (suite *TestMiscSuite) TestTransformAndMergeMap() {
 }
 
 func (suite *TestMiscSuite) TestMergeMapRecursive() {
-	expected := map[string]any{
-		"different": "value",
-		"hello":     "it's me",
-		"unique":    "value",
-		"nested": map[string]any{
-			"values":    "doggo",
+	suite.Run("MergeMapRecursive", func() {
+		expected := map[string]any{
 			"different": "value",
+			"hello":     "it's me",
 			"unique":    "value",
-		},
-	}
+			"nested": map[string]any{
+				"values":    "doggo",
+				"different": "value",
+				"unique":    "value",
+			},
+		}
 
-	result := MergeMapRecursive(suite.map1, suite.map2)
-	suite.Equal(expected, result)
+		result := MergeMapRecursive(suite.map1, suite.map2)
+		suite.Equal(expected, result)
+	})
+
+	suite.Run("MergeMapRecursiveNil", func() {
+		result := MergeMapRecursive(nil, suite.map2)
+		suite.Equal(suite.map2, result)
+	})
 }
 
 func (suite *TestMiscSuite) TestIsNotZeroAndNotEqual() {

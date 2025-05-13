@@ -95,6 +95,10 @@ func TransformAndMergeMap[T any](m1, m2 map[string]T, transform func(string) str
 func MergeMapRecursive(m1, m2 map[string]any) (r map[string]any) {
 	r = maps.Clone(m1)
 
+	if r == nil {
+		r = map[string]any{}
+	}
+
 	for key, value := range m2 {
 		if value, ok := value.(map[string]any); ok {
 			if nestedValue, ok := r[key]; ok {
