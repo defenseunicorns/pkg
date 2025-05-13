@@ -104,7 +104,7 @@ func (o *OrasRemote) PullPath(ctx context.Context, destinationDir string, desc o
 		return err
 	}
 
-	file, err := os.Create(fullPath)
+	file, err := os.OpenFile(fullPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, helpers.ReadWriteUser)
 	if err != nil {
 		return err
 	}
