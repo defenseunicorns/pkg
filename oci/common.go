@@ -100,6 +100,14 @@ func WithCache(cache *oci.Store) Modifier {
 func WithTransport(transport *http.Transport) Modifier {
 	return func(o *OrasRemote) {
 		o.progTransport = helpers.NewTransport(transport, nil)
+		client, ok := o.repo.Client.(*auth.Client)
+		if ok {
+			client.Client.Transport = o.progTransport
+			return
+		}
+		if o.log != nil {
+			o.log.Warn("unable to set repo client transport, client is not an auth.Client")
+		}
 	}
 }
 
@@ -111,19 +119,30 @@ func NewOrasRemote(url string, platform ocispec.Platform, mods ...Modifier) (*Or
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse OCI reference %q: %w", url, err)
 	}
+
 	httpTransport, ok := http.DefaultTransport.(*http.Transport)
 	if !ok {
 		return nil, fmt.Errorf("http.DefaultTransport is not an *http.Transport, something mutated global net/http variables")
 	}
+
 	transport := httpTransport.Clone()
+
+	storeOpts := credentials.StoreOptions{}
+	credStore, err := credentials.NewStoreFromDocker(storeOpts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get credentials: %w", err)
+	}
+
 	client := &auth.Client{
 		Client: retry.DefaultClient,
 		Header: http.Header{
 			"User-Agent": {"oras-go"},
 		},
-		Cache: auth.DefaultCache,
+		Cache:      auth.NewCache(),
+		Credential: credentials.Credential(credStore),
 	}
 	client.Client.Transport = transport
+
 	o := &OrasRemote{
 		repo:           &remote.Repository{Client: client},
 		progTransport:  helpers.NewTransport(transport, nil),
@@ -133,6 +152,10 @@ func NewOrasRemote(url string, platform ocispec.Platform, mods ...Modifier) (*Or
 
 	for _, mod := range mods {
 		mod(o)
+	}
+
+	if o.log != nil {
+		o.log.Debug("gathered credentials from default Docker config file", "credentials_configured", credStore.IsAuthConfigured())
 	}
 
 	if err := o.setRepository(ref); err != nil {
@@ -191,20 +214,8 @@ func (o *OrasRemote) setRepository(ref registry.Reference) error {
 		ref.Registry = "ghcr.io"
 		ref.Repository = "defenseunicorns/packages/" + ref.Repository
 	}
-	storeOpts := credentials.StoreOptions{}
-	credStore, err := credentials.NewStoreFromDocker(storeOpts)
-	if err != nil {
-		return fmt.Errorf("failed to get credentials: %w", err)
-	}
-	client := &auth.Client{
-		Client:     retry.DefaultClient,
-		Cache:      auth.NewCache(),
-		Credential: credentials.Credential(credStore),
-	}
-	o.log.Debug("gathering credentials from default Docker config file", "credentials_configured", credStore.IsAuthConfigured())
 
 	o.repo.Reference = ref
-	o.repo.Client = client
 
 	return nil
 }
