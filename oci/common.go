@@ -96,6 +96,13 @@ func WithCache(cache *oci.Store) Modifier {
 	}
 }
 
+// WithTransport sets the transport for the remote
+func WithTransport(transport *http.Transport) Modifier {
+	return func(o *OrasRemote) {
+		o.progTransport = helpers.NewTransport(transport, nil)
+	}
+}
+
 // NewOrasRemote returns an oras remote repository client and context for the given url.
 //
 // Registry auth is handled by the Docker CLI's credential store and checked before returning the client
