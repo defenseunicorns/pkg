@@ -30,7 +30,7 @@ func (suite *OCISuite) cachedAndOfflineRemotes(ctx context.Context) (*ocistore.S
 		PlatformForArch(testArch), WithPlainHTTP(true), WithCache(store))
 	suite.NoError(err)
 	offline, err := NewOrasRemote(suite.setupInMemoryRegistry(ctx),
-		PlatformForArch(testArch), WithPlainHTTP(true))
+		PlatformForArch(testArch), WithPlainHTTP(true), WithCache(store))
 	suite.NoError(err)
 	return store, warm, offline
 }
