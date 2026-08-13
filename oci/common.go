@@ -5,6 +5,7 @@
 package oci
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -16,7 +17,6 @@ import (
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 	"oras.land/oras-go/v2/registry/remote/credentials"
-	"oras.land/oras-go/v2/registry/remote/retry"
 
 	"github.com/defenseunicorns/pkg/helpers/v2"
 )
@@ -51,11 +51,25 @@ func WithInsecureSkipVerify(insecure bool) Modifier {
 	return func(o *OrasRemote) {
 		transport, ok := o.progTransport.Base.(*http.Transport)
 		if ok {
+			transport = transport.Clone()
+			if transport.TLSClientConfig == nil {
+				transport.TLSClientConfig = &tls.Config{}
+			}
 			transport.TLSClientConfig.InsecureSkipVerify = insecure
+			o.progTransport.Base = transport
 			return
 		}
 		if o.log != nil {
 			o.log.Warn("unable to set WithInsecureSkipVerify, base transport is not an http.Transport")
+		}
+	}
+}
+
+// WithTransport sets the HTTP transport for the remote.
+func WithTransport(transport *http.Transport) Modifier {
+	return func(o *OrasRemote) {
+		if transport != nil {
+			o.progTransport.Base = transport.Clone()
 		}
 	}
 }
@@ -109,17 +123,17 @@ func NewOrasRemote(url string, platform ocispec.Platform, mods ...Modifier) (*Or
 		return nil, fmt.Errorf("http.DefaultTransport is not an *http.Transport, something mutated global net/http variables")
 	}
 	transport := httpTransport.Clone()
+	progTransport := helpers.NewTransport(transport, nil)
 	client := &auth.Client{
-		Client: retry.DefaultClient,
+		Client: &http.Client{Transport: progTransport},
 		Header: http.Header{
 			"User-Agent": {"oras-go"},
 		},
-		Cache: auth.DefaultCache,
+		Cache: auth.NewCache(),
 	}
-	client.Client.Transport = transport
 	o := &OrasRemote{
 		repo:           &remote.Repository{Client: client},
-		progTransport:  helpers.NewTransport(transport, nil),
+		progTransport:  progTransport,
 		targetPlatform: &platform,
 		log:            slog.Default(),
 	}
@@ -189,15 +203,14 @@ func (o *OrasRemote) setRepository(ref registry.Reference) error {
 	if err != nil {
 		return fmt.Errorf("failed to get credentials: %w", err)
 	}
-	client := &auth.Client{
-		Client:     retry.DefaultClient,
-		Cache:      auth.NewCache(),
-		Credential: credentials.Credential(credStore),
+	client, ok := o.repo.Client.(*auth.Client)
+	if !ok {
+		return fmt.Errorf("repository client is not an auth client")
 	}
+	client.Credential = credentials.Credential(credStore)
 	o.log.Debug("gathering credentials from default Docker config file", "credentials_configured", credStore.IsAuthConfigured())
 
 	o.repo.Reference = ref
-	o.repo.Client = client
 
 	return nil
 }
