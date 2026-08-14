@@ -212,7 +212,9 @@ func (o *OrasRemote) setRepository(ref registry.Reference) error {
 		return fmt.Errorf("repository client is not an auth client")
 	}
 	client.Credential = credentials.Credential(credStore)
-	o.log.Debug("gathering credentials from default Docker config file", "credentials_configured", credStore.IsAuthConfigured())
+	if o.log != nil {
+		o.log.Debug("gathering credentials from default Docker config file", "credentials_configured", credStore.IsAuthConfigured())
+	}
 
 	o.repo.Reference = ref
 

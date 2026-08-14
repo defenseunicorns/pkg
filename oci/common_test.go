@@ -96,6 +96,16 @@ func TestWithUserAgent_SurvivesRepositorySetup(t *testing.T) {
 	require.NotNil(t, client.Credential)
 }
 
+func TestWithLogger_Nil(t *testing.T) {
+	remote, err := NewOrasRemote(
+		"example.com/repository:latest",
+		PlatformForArch(testArch),
+		WithLogger(nil),
+	)
+	require.NoError(t, err)
+	require.Nil(t, remote.log)
+}
+
 func TestWithInsecureSkipVerify_ClonesTransport(t *testing.T) {
 	tests := []struct {
 		name      string
