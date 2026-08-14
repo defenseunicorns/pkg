@@ -28,12 +28,13 @@ const (
 
 // OrasRemote is a wrapper around the Oras remote repository that includes a progress bar for interactive feedback.
 type OrasRemote struct {
-	repo           *remote.Repository
-	cache          *oci.Store
-	root           *Manifest
-	progTransport  *helpers.Transport
-	targetPlatform *ocispec.Platform
-	log            *slog.Logger
+	repo               *remote.Repository
+	cache              *oci.Store
+	root               *Manifest
+	progTransport      *helpers.Transport
+	targetPlatform     *ocispec.Platform
+	insecureSkipVerify *bool
+	log                *slog.Logger
 }
 
 // Modifier is a function that modifies an OrasRemote
@@ -46,16 +47,15 @@ func WithPlainHTTP(plainHTTP bool) Modifier {
 	}
 }
 
-// WithInsecureSkipVerify sets the insecure TLS flag for the remote
+// WithInsecureSkipVerify sets the insecure TLS flag for the remote.
+// An explicit value takes precedence over WithTransport regardless of modifier order.
 func WithInsecureSkipVerify(insecure bool) Modifier {
 	return func(o *OrasRemote) {
+		o.insecureSkipVerify = &insecure
 		transport, ok := o.progTransport.Base.(*http.Transport)
 		if ok {
 			transport = transport.Clone()
-			if transport.TLSClientConfig == nil {
-				transport.TLSClientConfig = &tls.Config{}
-			}
-			transport.TLSClientConfig.InsecureSkipVerify = insecure
+			applyInsecureSkipVerify(transport, insecure)
 			o.progTransport.Base = transport
 			return
 		}
@@ -69,7 +69,11 @@ func WithInsecureSkipVerify(insecure bool) Modifier {
 func WithTransport(transport *http.Transport) Modifier {
 	return func(o *OrasRemote) {
 		if transport != nil {
-			o.progTransport.Base = transport.Clone()
+			transport = transport.Clone()
+			if o.insecureSkipVerify != nil {
+				applyInsecureSkipVerify(transport, *o.insecureSkipVerify)
+			}
+			o.progTransport.Base = transport
 		}
 	}
 }
@@ -213,4 +217,12 @@ func (o *OrasRemote) setRepository(ref registry.Reference) error {
 	o.repo.Reference = ref
 
 	return nil
+}
+
+// applyInsecureSkipVerify sets InsecureSkipVerify on the TLSClientConfig
+func applyInsecureSkipVerify(transport *http.Transport, insecure bool) {
+	if transport.TLSClientConfig == nil {
+		transport.TLSClientConfig = &tls.Config{}
+	}
+	transport.TLSClientConfig.InsecureSkipVerify = insecure
 }
