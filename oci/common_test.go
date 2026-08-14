@@ -165,3 +165,29 @@ func TestWithInsecureSkipVerify_OrderIndependent(t *testing.T) {
 		})
 	}
 }
+
+func TestWithTransport_PreservesInsecureSkipVerifyWhenUnset(t *testing.T) {
+	tests := []struct {
+		name     string
+		insecure bool
+	}{
+		{name: "secure", insecure: false},
+		{name: "insecure", insecure: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: tt.insecure}}
+			remote, err := NewOrasRemote(
+				"example.com/repository:latest",
+				PlatformForArch(testArch),
+				WithTransport(transport),
+			)
+			require.NoError(t, err)
+
+			configured, ok := remote.progTransport.Base.(*http.Transport)
+			require.True(t, ok)
+			require.Equal(t, tt.insecure, configured.TLSClientConfig.InsecureSkipVerify)
+		})
+	}
+}
