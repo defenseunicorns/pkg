@@ -10,7 +10,6 @@
 | --- | --- | --- |
 | [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=exec%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/exec) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/exec</pre> | provides a wrapper around the os/exec package |
 | [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=helpers%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/helpers/v2) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/helpers/v2</pre> | provides common helper functions for Go. |
-| [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=kubernetes%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/kubernetes) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/kubernetes</pre> | provides helper functions related to Kubernetes. |
 | [![GitHub Tag](https://img.shields.io/github/v/tag/defenseunicorns/pkg?sort=date&filter=oci%2F*&label)](https://pkg.go.dev/github.com/defenseunicorns/pkg/oci) | <pre lang="bash">go get -u github.com/defenseunicorns/pkg/oci</pre> | provides tools for interacting with artifacts stored in OCI registries |
 
 ## Contributing
