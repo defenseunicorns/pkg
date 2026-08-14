@@ -83,16 +83,23 @@ func (t *Transport) roundTrip(req *http.Request) (resp *http.Response, err error
 	if req.Method != http.MethodHead && req.Body != nil && t.ProgressBar != nil {
 		req.Body = io.NopCloser(io.TeeReader(req.Body, t.ProgressBar))
 	}
-
 	resp, err = t.Base.RoundTrip(req)
-
 	if resp != nil && req.Method == http.MethodHead && err == nil && t.ProgressBar != nil {
 		if resp.ContentLength > 0 {
-			contentLength := int(resp.ContentLength)
-			b := make([]byte, contentLength)
-			_, _ = t.ProgressBar.Write(b)
+			// Write progress in chunks to avoid allocating a large byte slice
+			const chunkSize = 8192 // 8KB chunks
+			remaining := resp.ContentLength
+			buf := make([]byte, chunkSize)
+
+			for remaining > 0 {
+				writeSize := chunkSize
+				if remaining < int64(chunkSize) {
+					writeSize = int(remaining)
+				}
+				_, _ = t.ProgressBar.Write(buf[:writeSize])
+				remaining -= int64(writeSize)
+			}
 		}
 	}
-
 	return resp, err
 }
